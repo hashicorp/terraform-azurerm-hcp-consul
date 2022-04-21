@@ -12,18 +12,18 @@ data "azurerm_subscription" "current" {}
 
 # Parent resource group
 resource "azurerm_resource_group" "rg" {
-  name     = "${local.cluster_id}-gid"
-  location = local.network_region
+  name     = "${var.cluster_id}-gid"
+  location = var.network_region
 }
 
 resource "azurerm_route_table" "rt" {
-  name                = "${local.cluster_id}-rt"
+  name                = "${var.cluster_id}-rt"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
 }
 
 resource "azurerm_network_security_group" "nsg" {
-  name                = "${local.cluster_id}-nsg"
+  name                = "${var.cluster_id}-nsg"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
 }
@@ -33,26 +33,26 @@ resource "azurerm_network_security_group" "nsg" {
 module "network" {
   source              = "Azure/vnet/azurerm"
   resource_group_name = azurerm_resource_group.rg.name
-  address_space       = local.vnet_cidrs
-  subnet_prefixes     = values(local.vnet_subnets)
-  subnet_names        = keys(local.vnet_subnets)
-  vnet_name           = "${local.cluster_id}-vnet"
+  address_space       = var.vnet_cidrs
+  subnet_prefixes     = values(var.vnet_subnets)
+  subnet_names        = keys(var.vnet_subnets)
+  vnet_name           = "${var.cluster_id}-vnet"
 
   # Every subnet will share a single route table
-  route_tables_ids = { for i, subnet in keys(local.vnet_subnets) : subnet => azurerm_route_table.rt.id }
+  route_tables_ids = { for i, subnet in keys(var.vnet_subnets) : subnet => azurerm_route_table.rt.id }
 
   # Every subnet will share a single network security group
-  nsg_ids = { for i, subnet in keys(local.vnet_subnets) : subnet => azurerm_network_security_group.nsg.id }
+  nsg_ids = { for i, subnet in keys(var.vnet_subnets) : subnet => azurerm_network_security_group.nsg.id }
 
   depends_on = [azurerm_resource_group.rg]
 }
 
 # Step 1: Create HVN
 resource "hcp_hvn" "hvn" {
-  hvn_id         = local.hvn_id
+  hvn_id         = var.hvn_id
   cloud_provider = "azure"
-  region         = local.hvn_region
-  cidr_block     = "172.25.16.0/20"
+  region         = var.hvn_region
+  cidr_block     = var.hvn_cidr_block
 }
 
 
