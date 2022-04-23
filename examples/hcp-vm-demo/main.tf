@@ -1,16 +1,6 @@
-locals {
-  # Setting vars as locals for portability to hcp-ui-rgs
-  network_region = var.network_region
-  hvn_region     = var.hvn_region
-  hvn_id         = var.hvn_id
-  cluster_id     = var.cluster_id
-  vnet_cidrs     = var.vnet_cidrs
-  vnet_subnets   = var.vnet_subnets
-}
 
 data "azurerm_subscription" "current" {}
 
-# Parent resource group
 resource "azurerm_resource_group" "rg" {
   name     = "${var.cluster_id}-gid"
   location = var.network_region
@@ -28,8 +18,6 @@ resource "azurerm_network_security_group" "nsg" {
   location            = azurerm_resource_group.rg.location
 }
 
-
-# Step 1: Create vnet and subnets
 module "network" {
   source              = "Azure/vnet/azurerm"
   resource_group_name = azurerm_resource_group.rg.name
@@ -47,7 +35,6 @@ module "network" {
   depends_on = [azurerm_resource_group.rg]
 }
 
-# Step 1: Create HVN
 resource "hcp_hvn" "hvn" {
   hvn_id         = var.hvn_id
   cloud_provider = "azure"
@@ -55,8 +42,6 @@ resource "hcp_hvn" "hvn" {
   cidr_block     = var.hvn_cidr_block
 }
 
-
-# Step 2: Create a peering between the HVN and the Vnet. Return a NSG and ASG (security groups)
 module "hcp_peering" {
   source = "../../"
   # Required
@@ -72,7 +57,6 @@ module "hcp_peering" {
   security_group_names = [azurerm_network_security_group.nsg.name]
 }
 
-# Step 2: create a consul cluster
 resource "hcp_consul_cluster" "main" {
   cluster_id      = var.cluster_id
   hvn_id          = hcp_hvn.hvn.hvn_id
@@ -84,7 +68,6 @@ resource "hcp_consul_cluster_root_token" "token" {
   cluster_id = hcp_consul_cluster.main.id
 }
 
-# Step 3: Create a vm that runs nomad and consul and registers some services
 module "vm_client" {
   source = "../../modules/hcp-vm-client"
 

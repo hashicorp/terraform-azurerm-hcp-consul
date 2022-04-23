@@ -1,3 +1,4 @@
+
 resource "consul_config_entry" "service_intentions_db" {
   name = "product-db"
   kind = "service-intentions"
