@@ -47,7 +47,6 @@ data "azurerm_subscription" "current" {}
 
 data "azurerm_resource_group" "rg" {
   name = local.vnet_rg_name
-
 }
 
 resource "azurerm_network_security_group" "nsg" {

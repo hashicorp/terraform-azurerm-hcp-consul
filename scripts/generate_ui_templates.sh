@@ -13,7 +13,7 @@ generate_base_existing_vnet_terraform () {
     # next replace references to the resource.resource_group with data.resource_group
     # next replace the module.network references with users specified locals
   generate_base_terraform $1 \
-      | sed -e '/^resource "azurerm_resource_group" "rg"/,+3 { s/location.*//g; }' \
+      | sed -e '/^resource "azurerm_resource_group" "rg"/,+3 { /location.*/d; }' \
       | sed -e '/^resource "azurerm_resource_group" "rg"/,+3 { s/name.*/name = local.vnet_rg_name /g; }' \
       | sed -e 's/resource "azurerm_resource_group" "rg"/data "azurerm_resource_group" "rg"/g' \
       | sed -e 's/azurerm_resource_group.rg/data.azurerm_resource_group.rg/g' \
