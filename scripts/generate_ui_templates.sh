@@ -68,3 +68,6 @@ done
 
 source ./scripts/terraform_fmt.sh
 
+cd test/hcp
+go test -update .
+cd -
