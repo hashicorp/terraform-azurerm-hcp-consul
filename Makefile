@@ -8,3 +8,6 @@ hashicups_version:
 
 module_version:
 	scripts/module_version.sh
+
+go/test:
+	cd test && go test ./hcp
