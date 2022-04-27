@@ -16,6 +16,12 @@ variable "hvn_id" {
   default     = "hvn-foobar"
 }
 
+variable "hvn_cidr_block" {
+  type        = string
+  description = "The cidr block of the hvn"
+  default     = "172.25.16.0/20"
+}
+
 variable "cluster_id" {
   type        = string
   description = "The cluster id is unique. All other unique values will be derived from this (resource group, vnet etc)"
