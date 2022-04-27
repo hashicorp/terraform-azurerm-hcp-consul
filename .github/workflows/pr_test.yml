@@ -3,9 +3,8 @@ name: "Go unit testing"
 on:
   pull_request:
     types: [ assigned, opened, synchronize, reopened ]
-
-
-      
+    branches:
+      - master
 
 jobs:
   test:
