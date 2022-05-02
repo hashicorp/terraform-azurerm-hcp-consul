@@ -1,7 +1,7 @@
 # hcp-vm-demo
 
-This example creates all of the AWS and HCP resources necessary for connecting a
-HCP Consul cluster to a Consul client on EC2.
+This example creates all of the Azure and HCP resources necessary for connecting a
+HCP Consul cluster to a Consul client on Azure VM.
 
 ### Prerequisites
 
@@ -43,4 +43,4 @@ This example is running on nomad, which can be accessed via the outputs `nomad_u
 **Warning**: This instance, by default, is publicly accessible on port 8080 and 8081,
 make sure to delete it when done.
 
-The EC2 applications be accessed via the `hashicups_url` output, providing URL to the demo app.
+The Azure VM applications be accessed via the `hashicups_url` output, providing URL to the demo app.
