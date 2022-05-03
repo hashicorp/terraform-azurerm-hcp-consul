@@ -1,10 +1,7 @@
 #!/bin/bash
 
-# NOTE: This does nothing until we release the modules.
-# don't commit this until we do. 
-
-old="0\.6\.1"
-new=0.7.0
+old="0\.1\.0"
+new=0.1.0
 
 for platform in vm; do
   file=examples/hcp-$platform-demo/main.tf
