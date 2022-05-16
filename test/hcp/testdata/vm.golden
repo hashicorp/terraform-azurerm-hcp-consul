@@ -3,7 +3,7 @@ locals {
   hvn_id         = "consul-quickstart-1634271483588-hvn"
   cluster_id     = "consul-quickstart-1634271483588"
   network_region = "westus2"
-  vnet_cidr      = ["10.0.0.0/16"]
+  vnet_cidrs     = ["10.0.0.0/16"]
   vnet_subnets = {
     "subnet1" = "10.0.1.0/24",
   }

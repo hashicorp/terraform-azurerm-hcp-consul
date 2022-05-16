@@ -3,7 +3,7 @@ locals {
   hvn_id         = "{{ .ClusterID }}-hvn"
   cluster_id     = "{{ .ClusterID }}"
   network_region = "{{ .VnetRegion }}"
-  vnet_cidr      = ["10.0.0.0/16"]
+  vnet_cidrs     = ["10.0.0.0/16"]
   vnet_subnets = {
     "subnet1" = "10.0.1.0/24",
   }
