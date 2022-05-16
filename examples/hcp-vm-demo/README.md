@@ -19,6 +19,14 @@ az login
 az account set --subscription="SUBSCRIPTION_ID"
 ```
 
+3. Create RSA keys if you don't already have them. Used for [SSH access to the Azure VMs](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_virtual_machine).
+
+```
+if [ ! -f ~/.ssh/id_rsa.pub ]; then
+    ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa
+fi
+```
+
 ### Deployment
 
 1. Initialize and apply the Terraform configuration
