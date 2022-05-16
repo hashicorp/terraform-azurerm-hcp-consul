@@ -53,10 +53,10 @@ module "hcp_peering" {
   vnet_rg         = azurerm_resource_group.rg.name
   vnet_id         = module.network.vnet_id
   subnet_ids      = module.network.vnet_subnets
-  prefix          = var.cluster_id
 
   # Optional
   security_group_names = [azurerm_network_security_group.nsg.name]
+  prefix               = var.cluster_id
 }
 
 resource "hcp_consul_cluster" "main" {
