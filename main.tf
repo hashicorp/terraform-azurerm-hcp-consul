@@ -83,7 +83,7 @@ data "azurerm_subnet" "selected" {
 
 resource "hcp_azure_peering_connection" "peering" {
   hvn_link                 = var.hvn.self_link
-  peering_id               = "${var.prefix}-peering-id"
+  peering_id               = "${var.prefix}-peer"
   peer_vnet_name           = data.azurerm_virtual_network.vnet.name
   peer_subscription_id     = var.subscription_id
   peer_tenant_id           = var.tenant_id
