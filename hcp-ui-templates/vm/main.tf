@@ -3,7 +3,7 @@ locals {
   hvn_id         = "{{ .ClusterID }}-hvn"
   cluster_id     = "{{ .ClusterID }}"
   network_region = "{{ .VnetRegion }}"
-  vnet_cidr      = ["10.0.0.0/16"]
+  vnet_cidrs     = ["10.0.0.0/16"]
   vnet_subnets = {
     "subnet1" = "10.0.1.0/24",
   }
@@ -98,10 +98,10 @@ module "hcp_peering" {
   vnet_rg         = azurerm_resource_group.rg.name
   vnet_id         = module.network.vnet_id
   subnet_ids      = module.network.vnet_subnets
-  prefix          = local.cluster_id
 
   # Optional
   security_group_names = [azurerm_network_security_group.nsg.name]
+  prefix               = local.cluster_id
 }
 
 resource "hcp_consul_cluster" "main" {

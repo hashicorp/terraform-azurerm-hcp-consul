@@ -83,7 +83,7 @@ data "azurerm_subnet" "selected" {
 
 resource "hcp_azure_peering_connection" "peering" {
   hvn_link                 = var.hvn.self_link
-  peering_id               = "${var.prefix}-peering-id"
+  peering_id               = "${var.prefix}-peer"
   peer_vnet_name           = data.azurerm_virtual_network.vnet.name
   peer_subscription_id     = var.subscription_id
   peer_tenant_id           = var.tenant_id
@@ -126,7 +126,7 @@ data "hcp_azure_peering_connection" "peering" {
 resource "hcp_hvn_route" "route" {
   count        = length(data.azurerm_subnet.selected)
   hvn_link     = var.hvn.self_link
-  hvn_route_id = "${var.prefix}-${data.azurerm_subnet.selected[count.index].name}"
+  hvn_route_id = "${var.prefix}-${count.index}"
   # TODO: handle multiple cidrs attached to a single subnet. Taking first for now
   destination_cidr = data.azurerm_subnet.selected[count.index].address_prefixes[0]
   target_link      = data.hcp_azure_peering_connection.peering.self_link
