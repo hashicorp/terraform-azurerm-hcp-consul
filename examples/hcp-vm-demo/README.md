@@ -1,7 +1,6 @@
 # hcp-vm-demo
 
-This example creates all of the Azure and HCP resources necessary for connecting a
-HCP Consul cluster to a Consul client on Azure VM.
+This example creates all of the Azure and HCP resources necessary for connecting a HCP Consul cluster to a Consul client on Azure VM.
 
 ### Prerequisites
 
@@ -18,6 +17,8 @@ export HCP_CLIENT_SECRET=...
 az login
 az account set --subscription="SUBSCRIPTION_ID"
 ```
+
+The user must be assigned a [role granting authorization to create Service Principals](https://docs.microsoft.com/en-us/graph/api/serviceprincipal-post-serviceprincipals?view=graph-rest-1.0&tabs=http#permissions). For example: `Cloud Application Administrator` or `Application Administrator`.
 
 3. Create RSA keys if you don't already have them. Used for [SSH access to the Azure VMs](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_virtual_machine).
 
@@ -48,7 +49,6 @@ This example is running on nomad, which can be accessed via the outputs `nomad_u
 
 #### VM instances
 
-**Warning**: This instance, by default, is publicly accessible on port 8080 and 8081,
-make sure to delete it when done.
+**Warning**: This instance, by default, is publicly accessible on port 8080 and 8081, make sure to delete it when done.
 
 The Azure VM applications be accessed via the `hashicups_url` output, providing URL to the demo app.
