@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # https://github.com/hashicorp-demoapp/hashicups-setups/blob/main/docker-compose-deployment/docker-compose.yaml
-FRONTEND_VERSION="v1.0.1"
+FRONTEND_VERSION="v1.0.2"
 PUBLIC_API_VERSION="v0.0.6"
 PRODUCT_API_VERSION="v0.0.20"
 PRODUCT_API_DB_VERSION="v0.0.20"

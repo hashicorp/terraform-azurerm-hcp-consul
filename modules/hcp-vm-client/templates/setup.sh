@@ -8,15 +8,15 @@ start_service () {
 }
 
 setup_deps () {
-  add-apt-repository universe -y
-	curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+    add-apt-repository universe -y
+    curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
 	apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
-  curl -sL 'https://deb.dl.getenvoy.io/public/gpg.8115BA8E629CC074.key' | gpg --dearmor -o /usr/share/keyrings/getenvoy-keyring.gpg
-  echo "deb [arch=amd64 signed-by=/usr/share/keyrings/getenvoy-keyring.gpg] https://deb.dl.getenvoy.io/public/deb/ubuntu $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/getenvoy.list
-  apt update -qy
+    curl -sL 'https://deb.dl.getenvoy.io/public/gpg.8115BA8E629CC074.key' | gpg --dearmor -o /usr/share/keyrings/getenvoy-keyring.gpg
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/getenvoy-keyring.gpg] https://deb.dl.getenvoy.io/public/deb/ubuntu $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/getenvoy.list
+    apt update -qy
 	version="${consul_version}"
-	consul_package="consul-enterprise="$${version:1}"*"
-	apt install -qy apt-transport-https gnupg2 curl lsb-release nomad $${consul_package} getenvoy-envoy unzip jq apache2-utils nginx
+	consul_package="consul-enterprise=$${version:1}*"
+	apt install -qy apt-transport-https gnupg2 curl lsb-release nomad "$${consul_package}" getenvoy-envoy unzip jq apache2-utils nginx
 
 	curl -fsSL https://get.docker.com -o get-docker.sh
 	sh ./get-docker.sh
@@ -38,7 +38,7 @@ setup_consul() {
 	
 	echo "${consul_ca}" | base64 -d > /etc/consul.d/ca.pem
 	echo "${consul_config}" | base64 -d > client.temp.0
-	ip=`hostname -I | awk '{print $1}'`
+	ip=$(hostname -I | awk '{print $1}')
 	jq '.ca_file = "/etc/consul.d/ca.pem"' client.temp.0 > client.temp.1
 	jq --arg token "${consul_acl_token}" '.acl += {"tokens":{"agent":"\($token)"}}' client.temp.1 > client.temp.2
 	jq '.ports = {"grpc":8502}' client.temp.2 > client.temp.3
@@ -68,7 +68,7 @@ start_service "consul"
 start_service "nomad"
 
 # nomad and consul service is type simple and might not be up and running just yet.
-sleep 10
+sleep 30
 
 nomad run hashicups.nomad
 
