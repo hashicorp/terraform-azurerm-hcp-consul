@@ -5,7 +5,7 @@ locals {
   subscription_id = "{{ .SubscriptionID }}"
   vnet_rg_name    = "{{ .VnetRgName }}"
   vnet_id         = "/subscriptions/{{ .SubscriptionID }}/resourceGroups/{{ .VnetRgName }}/providers/Microsoft.Network/virtualNetworks/{{ .VnetName }}"
-  subnet_name     = "/subscriptions/{{ .SubscriptionID }}/resourceGroups/{{ .VnetRgName }}/providers/Microsoft.Network/virtualNetworks/{{ .VnetName }}/subnets/{{ .SubnetName }}"
+  subnet_id       = "/subscriptions/{{ .SubscriptionID }}/resourceGroups/{{ .VnetRgName }}/providers/Microsoft.Network/virtualNetworks/{{ .VnetName }}/subnets/{{ .SubnetName }}"
 }
 
 

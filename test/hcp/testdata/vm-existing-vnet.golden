@@ -5,7 +5,7 @@ locals {
   subscription_id = "26310ff2-35ad-4839-83fb-0f82f258779f"
   vnet_rg_name    = "myvnetresourcegroup"
   vnet_id         = "/subscriptions/26310ff2-35ad-4839-83fb-0f82f258779f/resourceGroups/myvnetresourcegroup/providers/Microsoft.Network/virtualNetworks/myvnetname"
-  subnet_name     = "/subscriptions/26310ff2-35ad-4839-83fb-0f82f258779f/resourceGroups/myvnetresourcegroup/providers/Microsoft.Network/virtualNetworks/myvnetname/subnets/mysubnetname"
+  subnet_id       = "/subscriptions/26310ff2-35ad-4839-83fb-0f82f258779f/resourceGroups/myvnetresourcegroup/providers/Microsoft.Network/virtualNetworks/myvnetname/subnets/mysubnetname"
 }
 
 
