@@ -5,7 +5,7 @@ locals {
   subscription_id = "{{ .SubscriptionID }}"
   vnet_rg_name    = "{{ .VnetRgName }}"
   vnet_id         = "/subscriptions/{{ .SubscriptionID }}/resourceGroups/{{ .VnetRgName }}/providers/Microsoft.Network/virtualNetworks/{{ .VnetName }}"
-  subnet_name     = "/subscriptions/{{ .SubscriptionID }}/resourceGroups/{{ .VnetRgName }}/providers/Microsoft.Network/virtualNetworks/{{ .VnetName }}/subnets/{{ .SubnetName }}"
+  subnet_id       = "/subscriptions/{{ .SubscriptionID }}/resourceGroups/{{ .VnetRgName }}/providers/Microsoft.Network/virtualNetworks/{{ .VnetName }}/subnets/{{ .SubnetName }}"
 }
 
 
@@ -106,70 +106,6 @@ module "vm_client" {
   client_ca_file     = hcp_consul_cluster.main.consul_ca_file
   root_token         = hcp_consul_cluster_root_token.token.secret_id
   consul_version     = hcp_consul_cluster.main.consul_version
-}
-
-resource "consul_config_entry" "service_intentions_db" {
-  name = "product-db"
-  kind = "service-intentions"
-
-  config_json = jsonencode({
-    Sources = [
-      {
-        Action     = "allow"
-        Name       = "product-api"
-        Precedence = 9
-        Type       = "consul"
-      },
-    ]
-  })
-}
-
-resource "consul_config_entry" "service_intentions_product" {
-  name = "product-api"
-  kind = "service-intentions"
-
-  config_json = jsonencode({
-    Sources = [
-      {
-        Action     = "allow"
-        Name       = "product-public-api"
-        Precedence = 9
-        Type       = "consul"
-      },
-    ]
-  })
-}
-
-resource "consul_config_entry" "service_intentions_payment" {
-  name = "payment-api"
-  kind = "service-intentions"
-
-  config_json = jsonencode({
-    Sources = [
-      {
-        Action     = "allow"
-        Name       = "product-public-api"
-        Precedence = 9
-        Type       = "consul"
-      },
-    ]
-  })
-}
-
-resource "consul_config_entry" "service_intentions_public_api" {
-  name = "product-public-api"
-  kind = "service-intentions"
-
-  config_json = jsonencode({
-    Sources = [
-      {
-        Action     = "allow"
-        Name       = "frontend"
-        Precedence = 9
-        Type       = "consul"
-      },
-    ]
-  })
 }
 
 output "consul_root_token" {
