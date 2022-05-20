@@ -1,7 +1,7 @@
 #!/bin/bash
 
 old="0\.1\.0"
-new=0.1.0
+new=0.2.0
 
 for platform in vm; do
   file=examples/hcp-$platform-demo/main.tf
