@@ -13,6 +13,10 @@ terraform {
       source  = "hashicorp/hcp"
       version = ">= 0.23.1"
     }
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 3.4.0"
+    }
   }
 
   required_version = ">= 1.0.11"
@@ -29,6 +33,8 @@ provider "azurerm" {
 provider "azuread" {}
 
 provider "hcp" {}
+
+provider "tls" {}
 
 provider "consul" {
   address    = hcp_consul_cluster.main.consul_public_endpoint_url

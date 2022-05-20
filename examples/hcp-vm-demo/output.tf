@@ -17,5 +17,14 @@ output "hashicups_url" {
 }
 
 output "next_steps" {
-  value = "Hashicups Application will be ready in ~2 minutes. Use 'terraform output consul_root_token' to retrieve the root token."
+  value = "Hashicups Application will be ready in ~5 minutes. Use 'terraform output consul_root_token' to retrieve the root token."
+}
+
+output "private_key_openssh" {
+  value     = tls_private_key.ssh.private_key_openssh
+  sensitive = true
+}
+
+output "vm_client_public_ip" {
+  value = module.vm_client.public_ip
 }

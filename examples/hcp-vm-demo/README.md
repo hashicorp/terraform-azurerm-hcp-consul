@@ -20,14 +20,6 @@ az account set --subscription="SUBSCRIPTION_ID"
 
 The user must be assigned a [role granting authorization to create Service Principals](https://docs.microsoft.com/en-us/graph/api/serviceprincipal-post-serviceprincipals?view=graph-rest-1.0&tabs=http#permissions). For example: `Cloud Application Administrator` or `Application Administrator`.
 
-3. Create RSA keys if you don't already have them. Used for [SSH access to the Azure VMs](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_virtual_machine).
-
-```
-if [ ! -f ~/.ssh/id_rsa.pub ]; then
-    ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa
-fi
-```
-
 ### Deployment
 
 1. Initialize and apply the Terraform configuration
@@ -38,10 +30,15 @@ terraform init && terraform apply
 
 ### Accessing the Deployment
 
+**Warning**: This instance, by default, is publicly accessible on port 8080 and 8081, make sure to delete it when done.
+
+#### HashiCups
+
+The web app is accessible at the `hashicups_url` output. Note: it takes several minutes for all dependencies and images to download and start.
+
 #### HCP Consul
 
-The HCP Consul cluster can be accessed via the outputs `consul_url` and
-`consul_root_token`.
+The HCP Consul cluster's UI can be accessed via the outputs `consul_url` and `consul_root_token`.
 
 #### Nomad
 
@@ -49,6 +46,11 @@ This example is running on nomad, which can be accessed via the outputs `nomad_u
 
 #### VM instances
 
-**Warning**: This instance, by default, is publicly accessible on port 8080 and 8081, make sure to delete it when done.
+To SSH to the VM/Consul client, write the private key to a file and use it to SSH:
 
-The Azure VM applications be accessed via the `hashicups_url` output, providing URL to the demo app.
+```bash
+pem=~/.ssh/hashicups.pem
+tf output -raw private_key_openssh > $pem
+chmod 400 $pem
+ssh -i $pem adminuser@$(tf output -raw vm_client_public_ip)
+```
