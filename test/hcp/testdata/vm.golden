@@ -24,6 +24,10 @@ terraform {
       source  = "hashicorp/hcp"
       version = ">= 0.23.1"
     }
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 3.4.0"
+    }
   }
 
   required_version = ">= 1.0.11"
@@ -37,6 +41,8 @@ provider "azurerm" {
 provider "azuread" {}
 
 provider "hcp" {}
+
+provider "tls" {}
 
 provider "consul" {
   address    = hcp_consul_cluster.main.consul_public_endpoint_url
@@ -115,6 +121,11 @@ resource "hcp_consul_cluster_root_token" "token" {
   cluster_id = hcp_consul_cluster.main.id
 }
 
+resource "tls_private_key" "ssh" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
 module "vm_client" {
   source  = "hashicorp/hcp-consul/azurerm//modules/hcp-vm-client"
   version = "~> 0.2.0"
@@ -130,6 +141,7 @@ module "vm_client" {
   client_config_file = hcp_consul_cluster.main.consul_config_file
   client_ca_file     = hcp_consul_cluster.main.consul_ca_file
   root_token         = hcp_consul_cluster_root_token.token.secret_id
+  ssh_public_key     = tls_private_key.ssh.public_key_openssh
   consul_version     = hcp_consul_cluster.main.consul_version
 }
 
@@ -150,6 +162,26 @@ output "hashicups_url" {
   value = "http://${module.vm_client.public_ip}"
 }
 
+output "private_key_openssh" {
+  value     = tls_private_key.ssh.private_key_openssh
+  sensitive = true
+}
+
+output "vm_client_public_ip" {
+  value = module.vm_client.public_ip
+}
+
 output "next_steps" {
-  value = "Hashicups Application will be ready in ~2 minutes. Use 'terraform output consul_root_token' to retrieve the root token."
+  value = <<EOT
+Hashicups Application will be ready in ~5 minutes.
+
+Use 'terraform output consul_root_token' to retrieve the root token.
+
+To SSH into your VM:
+
+  pem=~/.ssh/hashicups.pem
+  tf output -raw private_key_openssh > $pem
+  chmod 400 $pem
+  ssh -i $pem adminuser@$(tf output -raw vm_client_public_ip)
+EOT
 }
