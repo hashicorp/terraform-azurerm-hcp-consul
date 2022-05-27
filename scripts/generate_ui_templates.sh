@@ -58,7 +58,9 @@ generate() {
   file=hcp-ui-templates/$1-existing-vnet/main.tf
   mkdir -p $(dirname $file)
   generate_existing_vnet_locals $1 > $file
-  generate_existing_vnet_terraform $1 >> $file
+  # for the existing VNET template, we want to be sure to use the correct subscription
+  generate_existing_vnet_terraform $1 \
+    | sed 's/  features {}/  subscription_id = local.subscription_id\n  features {}/' >> $file
 
 }
 
