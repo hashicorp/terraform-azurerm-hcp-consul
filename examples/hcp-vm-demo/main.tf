@@ -1,6 +1,10 @@
 
 data "azurerm_subscription" "current" {}
 
+resource "random_string" "vm_admin_password" {
+  length = 16
+}
+
 resource "azurerm_resource_group" "rg" {
   name     = "${var.cluster_id}-gid"
   location = var.network_region
@@ -81,6 +85,8 @@ module "vm_client" {
   allowed_ssh_cidr_blocks  = ["0.0.0.0/0"]
   allowed_http_cidr_blocks = ["0.0.0.0/0"]
   subnet_id                = module.network.vnet_subnets[0]
+
+  vm_admin_password = random_string.vm_admin_password.result
 
   client_config_file = hcp_consul_cluster.main.consul_config_file
   client_ca_file     = hcp_consul_cluster.main.consul_ca_file

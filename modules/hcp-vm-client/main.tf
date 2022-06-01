@@ -71,6 +71,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
   resource_group_name             = var.resource_group
   size                            = "Standard_F2s_v2"
   admin_username                  = "adminuser"
+  admin_password                  = var.vm_admin_password
   disable_password_authentication = false
   network_interface_ids           = [azurerm_network_interface.client_nic.id]
 

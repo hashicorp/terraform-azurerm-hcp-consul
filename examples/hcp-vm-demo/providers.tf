@@ -13,6 +13,10 @@ terraform {
       source  = "hashicorp/hcp"
       version = ">= 0.23.1"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = "3.2.0"
+    }
   }
 
   required_version = ">= 1.0.11"
@@ -30,7 +34,7 @@ provider "azuread" {}
 
 provider "hcp" {}
 
-provider "tls" {}
+provider "random" {}
 
 provider "consul" {
   address    = hcp_consul_cluster.main.consul_public_endpoint_url

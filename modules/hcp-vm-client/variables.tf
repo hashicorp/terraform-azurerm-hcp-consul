@@ -61,3 +61,8 @@ variable "vpc_cidr" {
   description = "VPC CIDR defaulted to the CIDR used throughtout this repo for customer vnets"
   default     = "10.0.0.0/8"
 }
+
+variable "vm_admin_password" {
+  type        = string
+  description = "admin password for the Azure VM"
+}

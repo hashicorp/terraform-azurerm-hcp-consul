@@ -24,6 +24,10 @@ terraform {
       source  = "hashicorp/hcp"
       version = ">= 0.23.1"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = "3.2.0"
+    }
   }
 
   required_version = ">= 1.0.11"
@@ -38,7 +42,7 @@ provider "azuread" {}
 
 provider "hcp" {}
 
-provider "tls" {}
+provider "random" {}
 
 provider "consul" {
   address    = hcp_consul_cluster.main.consul_public_endpoint_url
@@ -47,6 +51,10 @@ provider "consul" {
 }
 
 data "azurerm_subscription" "current" {}
+
+resource "random_string" "vm_admin_password" {
+  length = 16
+}
 
 resource "azurerm_resource_group" "rg" {
   name     = "${local.cluster_id}-gid"
@@ -129,6 +137,8 @@ module "vm_client" {
   allowed_http_cidr_blocks = ["0.0.0.0/0"]
   subnet_id                = module.network.vnet_subnets[0]
 
+  vm_admin_password = random_string.vm_admin_password.result
+
   client_config_file = hcp_consul_cluster.main.consul_config_file
   client_ca_file     = hcp_consul_cluster.main.consul_ca_file
   root_token         = hcp_consul_cluster_root_token.token.secret_id
@@ -137,6 +147,11 @@ module "vm_client" {
 
 output "consul_root_token" {
   value     = hcp_consul_cluster_root_token.token.secret_id
+  sensitive = true
+}
+
+output "vm_admin_password" {
+  value     = random_string.vm_admin_password.result
   sensitive = true
 }
 

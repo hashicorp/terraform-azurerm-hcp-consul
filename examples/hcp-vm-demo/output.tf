@@ -4,6 +4,11 @@ output "consul_root_token" {
   sensitive = true
 }
 
+output "vm_admin_password" {
+  value     = random_string.vm_admin_password.result
+  sensitive = true
+}
+
 output "consul_url" {
   value = hcp_consul_cluster.main.consul_public_endpoint_url
 }
