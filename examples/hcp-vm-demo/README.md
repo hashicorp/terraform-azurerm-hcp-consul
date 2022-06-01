@@ -43,14 +43,3 @@ The HCP Consul cluster's UI can be accessed via the outputs `consul_url` and `co
 #### Nomad
 
 This example is running on nomad, which can be accessed via the outputs `nomad_url` with the username `nomad` and `consul_root_token`.
-
-#### VM instances
-
-To SSH to the VM/Consul client, write the private key to a file and use it to SSH:
-
-```bash
-pem=~/.ssh/hashicups.pem
-tf output -raw private_key_openssh > $pem
-chmod 400 $pem
-ssh -i $pem adminuser@$(tf output -raw vm_client_public_ip)
-```

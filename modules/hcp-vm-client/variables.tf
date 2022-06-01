@@ -40,11 +40,6 @@ variable "root_token" {
   description = "The Consul Secret ID of the Consul root token"
 }
 
-variable "ssh_public_key" {
-  type        = string
-  description = "The public key data for SSH'ing to the VM"
-}
-
 variable "consul_version" {
   type        = string
   description = "The Consul version of the HCP servers"

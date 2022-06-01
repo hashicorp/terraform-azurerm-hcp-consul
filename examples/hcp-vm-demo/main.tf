@@ -70,11 +70,6 @@ resource "hcp_consul_cluster_root_token" "token" {
   cluster_id = hcp_consul_cluster.main.id
 }
 
-resource "tls_private_key" "ssh" {
-  algorithm = "RSA"
-  rsa_bits  = 4096
-}
-
 module "vm_client" {
   source  = "hashicorp/hcp-consul/azurerm//modules/hcp-vm-client"
   version = "~> 0.2.0"
@@ -90,6 +85,5 @@ module "vm_client" {
   client_config_file = hcp_consul_cluster.main.consul_config_file
   client_ca_file     = hcp_consul_cluster.main.consul_ca_file
   root_token         = hcp_consul_cluster_root_token.token.secret_id
-  ssh_public_key     = tls_private_key.ssh.public_key_openssh
   consul_version     = hcp_consul_cluster.main.consul_version
 }
