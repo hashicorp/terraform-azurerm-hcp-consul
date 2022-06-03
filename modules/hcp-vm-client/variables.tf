@@ -40,11 +40,6 @@ variable "root_token" {
   description = "The Consul Secret ID of the Consul root token"
 }
 
-variable "ssh_public_key" {
-  type        = string
-  description = "The public key data for SSH'ing to the VM"
-}
-
 variable "consul_version" {
   type        = string
   description = "The Consul version of the HCP servers"
@@ -65,4 +60,9 @@ variable "vpc_cidr" {
   type        = string
   description = "VPC CIDR defaulted to the CIDR used throughtout this repo for customer vnets"
   default     = "10.0.0.0/8"
+}
+
+variable "vm_admin_password" {
+  type        = string
+  description = "admin password for the Azure VM"
 }
