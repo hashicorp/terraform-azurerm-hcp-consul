@@ -42,10 +42,8 @@ resource "hcp_hvn" "hvn" {
 }
 
 module "hcp_peering" {
-  #source  = "hashicorp/hcp-consul/azurerm"
-  #version = "~> X.X.X"
-  # TODO: Revert to above once this is published
-  source  = "../.."
+  source  = "hashicorp/hcp-consul/azurerm"
+  version = "~> 0.2.0"
 
   tenant_id       = data.azurerm_subscription.current.tenant_id
   subscription_id = data.azurerm_subscription.current.subscription_id
