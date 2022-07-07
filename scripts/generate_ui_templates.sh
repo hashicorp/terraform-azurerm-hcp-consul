@@ -30,6 +30,12 @@ generate_existing_vnet_terraform () {
         | sed -e '/module "network"/,+16d' 
          # delete the resource group in favor of replace
       ;;
+    aks)
+      generate_base_existing_vnet_terraform $1 \
+        | sed -e '/resource "azurerm_virtual_network/,+15d' \
+        | sed -e 's/azurerm_virtual_network\.network\.id/local\.vnet_id/' \
+        | sed -e 's/azurerm_virtual_network\.network\.subnet/\[local\.subnet_id\]/'
+      ;;
   esac
 }
 
@@ -64,7 +70,7 @@ generate() {
 
 }
 
-for platform in vm; do
+for platform in vm aks; do
   generate $platform
 done
 

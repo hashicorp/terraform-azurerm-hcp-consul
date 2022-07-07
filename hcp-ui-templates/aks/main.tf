@@ -1,30 +1,117 @@
+locals {
+  hvn_region     = "{{ .HVNRegion }}"
+  hvn_id         = "{{ .ClusterID }}-hvn"
+  cluster_id     = "{{ .ClusterID }}"
+  network_region = "{{ .VnetRegion }}"
+  vnet_cidrs     = ["10.0.0.0/16"]
+  vnet_subnets = {
+    "subnet1" = "10.0.1.0/24",
+  }
+}
+
+terraform {
+  required_providers {
+    azurerm = {
+      source                = "hashicorp/azurerm"
+      version               = "~> 2.65"
+      configuration_aliases = [azurerm.azure]
+    }
+    azuread = {
+      source  = "hashicorp/azuread"
+      version = "~> 2.14"
+    }
+    hcp = {
+      source  = "hashicorp/hcp"
+      version = ">= 0.23.1"
+    }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = ">= 2.4.1"
+    }
+    helm = {
+      source  = "hashicorp/helm"
+      version = ">= 2.3.0"
+    }
+    kubectl = {
+      source  = "gavinbunney/kubectl"
+      version = ">= 1.11.3"
+    }
+  }
+
+  required_version = ">= 1.0.11"
+
+}
+
+provider "helm" {
+  kubernetes {
+    client_certificate     = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.client_certificate)
+    client_key             = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.client_key)
+    cluster_ca_certificate = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.cluster_ca_certificate)
+    host                   = azurerm_kubernetes_cluster.main.kube_config.0.host
+    password               = azurerm_kubernetes_cluster.main.kube_config.0.password
+    username               = azurerm_kubernetes_cluster.main.kube_config.0.username
+  }
+}
+
+provider "kubernetes" {
+  client_certificate     = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.client_certificate)
+  client_key             = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.client_key)
+  cluster_ca_certificate = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.cluster_ca_certificate)
+  host                   = azurerm_kubernetes_cluster.main.kube_config.0.host
+  password               = azurerm_kubernetes_cluster.main.kube_config.0.password
+  username               = azurerm_kubernetes_cluster.main.kube_config.0.username
+}
+
+provider "kubectl" {
+  client_certificate     = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.client_certificate)
+  client_key             = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.client_key)
+  cluster_ca_certificate = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.cluster_ca_certificate)
+  host                   = azurerm_kubernetes_cluster.main.kube_config.0.host
+  load_config_file       = false
+  password               = azurerm_kubernetes_cluster.main.kube_config.0.password
+  username               = azurerm_kubernetes_cluster.main.kube_config.0.username
+}
+
+provider "azurerm" {
+  features {}
+}
+
+provider "azuread" {}
+
+provider "hcp" {}
+
+provider "consul" {
+  address    = hcp_consul_cluster.main.consul_public_endpoint_url
+  datacenter = hcp_consul_cluster.main.datacenter
+  token      = hcp_consul_cluster_root_token.token.secret_id
+}
 data "azurerm_subscription" "current" {}
 
 resource "azurerm_resource_group" "rg" {
-  location = var.network_region
-  name     = "${var.cluster_id}-gid"
+  location = local.network_region
+  name     = "${local.cluster_id}-gid"
 }
 
 resource "azurerm_route_table" "rt" {
   location            = azurerm_resource_group.rg.location
-  name                = "${var.cluster_id}-rt"
+  name                = "${local.cluster_id}-rt"
   resource_group_name = azurerm_resource_group.rg.name
 }
 
 resource "azurerm_network_security_group" "nsg" {
   location            = azurerm_resource_group.rg.location
-  name                = "${var.cluster_id}-nsg"
+  name                = "${local.cluster_id}-nsg"
   resource_group_name = azurerm_resource_group.rg.name
 }
 
 resource "azurerm_virtual_network" "network" {
-  address_space       = var.vnet_cidrs
+  address_space       = local.vnet_cidrs
   location            = azurerm_resource_group.rg.location
-  name                = "${var.cluster_id}-vnet"
+  name                = "${local.cluster_id}-vnet"
   resource_group_name = azurerm_resource_group.rg.name
 
   dynamic "subnet" {
-    for_each = var.vnet_subnets
+    for_each = local.vnet_subnets
 
     content {
       name           = subnet.key
@@ -38,16 +125,16 @@ resource "azurerm_public_ip" "ip" {
   allocation_method   = "Static"
   location            = azurerm_resource_group.rg.location
   ip_version          = "IPv4"
-  name                = "${var.cluster_id}-ip"
+  name                = "${local.cluster_id}-ip"
   resource_group_name = azurerm_resource_group.rg.name
   sku                 = "standard"
 }
 
 resource "hcp_hvn" "hvn" {
-  cidr_block     = var.hvn_cidr_block
+  cidr_block     = "172.25.32.0/20"
   cloud_provider = "azure"
-  hvn_id         = var.hvn_id
-  region         = var.hvn_region
+  hvn_id         = local.hvn_id
+  region         = local.hvn_region
 }
 
 module "hcp_peering" {
@@ -57,7 +144,7 @@ module "hcp_peering" {
   source = "../.."
 
   hvn                  = hcp_hvn.hvn
-  prefix               = var.cluster_id
+  prefix               = local.cluster_id
   security_group_names = [azurerm_network_security_group.nsg.name]
   subnet_ids           = [for s in azurerm_virtual_network.network.subnet : s.id]
   subscription_id      = data.azurerm_subscription.current.subscription_id
@@ -67,10 +154,10 @@ module "hcp_peering" {
 }
 
 resource "hcp_consul_cluster" "main" {
-  cluster_id      = var.cluster_id
+  cluster_id      = local.cluster_id
   hvn_id          = hcp_hvn.hvn.hvn_id
   public_endpoint = true
-  tier            = var.tier
+  tier            = "development"
 }
 
 resource "hcp_consul_cluster_root_token" "token" {
@@ -78,9 +165,9 @@ resource "hcp_consul_cluster_root_token" "token" {
 }
 
 resource "azurerm_kubernetes_cluster" "main" {
-  dns_prefix              = var.cluster_id
+  dns_prefix              = local.cluster_id
   location                = azurerm_resource_group.rg.location
-  name                    = var.cluster_id
+  name                    = local.cluster_id
   private_cluster_enabled = false
   resource_group_name     = azurerm_resource_group.rg.name
   sku_tier                = "Free"
@@ -142,4 +229,20 @@ module "demo_app" {
   # version = "~> X.X.X"
 
   depends_on = [module.aks_consul_client]
+}
+output "consul_root_token" {
+  value     = hcp_consul_cluster_root_token.token.secret_id
+  sensitive = true
+}
+
+output "consul_url" {
+  value = hcp_consul_cluster.main.consul_public_endpoint_url
+}
+
+output "hashicups_url" {
+  value = azurerm_public_ip.ip.fqdn
+}
+
+output "next_steps" {
+  value = "Hashicups Application will be ready in ~2 minutes. Use 'terraform output consul_root_token' to retrieve the root token."
 }

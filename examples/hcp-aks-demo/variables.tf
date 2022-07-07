@@ -13,7 +13,7 @@ variable "hvn_region" {
 variable "hvn_id" {
   type        = string
   description = "the hvn id"
-  default     = "hvn-foobar"
+  default     = "quickstart-hvn"
 }
 
 variable "hvn_cidr_block" {
@@ -25,7 +25,7 @@ variable "hvn_cidr_block" {
 variable "cluster_id" {
   type        = string
   description = "The cluster id is unique. All other unique values will be derived from this (resource group, vnet etc)"
-  default     = "hcp-azure"
+  default     = "quickstart-cluster"
 }
 
 variable "tier" {

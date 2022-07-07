@@ -1,8 +1,8 @@
 terraform {
   required_providers {
     azurerm = {
-      source  = "hashicorp/azurerm"
-      version = "~> 2.65"
+      source                = "hashicorp/azurerm"
+      version               = "~> 2.65"
       configuration_aliases = [azurerm.azure]
     }
     azuread = {
@@ -36,30 +36,32 @@ terraform {
 
 provider "helm" {
   kubernetes {
-    host                   = module.aks.host
-    client_certificate     = base64decode(module.aks.client_certificate)
-    cluster_ca_certificate = base64decode(module.aks.cluster_ca_certificate)
-    client_key             = base64decode(module.aks.client_key)
-    username               = module.aks.admin_username
-    password               = module.aks.admin_password
+    client_certificate     = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.client_certificate)
+    client_key             = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.client_key)
+    cluster_ca_certificate = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.cluster_ca_certificate)
+    host                   = azurerm_kubernetes_cluster.main.kube_config.0.host
+    password               = azurerm_kubernetes_cluster.main.kube_config.0.password
+    username               = azurerm_kubernetes_cluster.main.kube_config.0.username
   }
 }
 
 provider "kubernetes" {
-  host                   = module.aks.host
-  client_certificate     = base64decode(module.aks.client_certificate)
-  client_key             = base64decode(module.aks.client_key)
-  cluster_ca_certificate = base64decode(module.aks.cluster_ca_certificate)
-  username               = module.aks.admin_username
-  password               = module.aks.admin_password
+  client_certificate     = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.client_certificate)
+  client_key             = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.client_key)
+  cluster_ca_certificate = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.cluster_ca_certificate)
+  host                   = azurerm_kubernetes_cluster.main.kube_config.0.host
+  password               = azurerm_kubernetes_cluster.main.kube_config.0.password
+  username               = azurerm_kubernetes_cluster.main.kube_config.0.username
 }
 
 provider "kubectl" {
-  host                   = module.aks.host
-  cluster_ca_certificate = base64decode(module.aks.cluster_ca_certificate)
+  client_certificate     = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.client_certificate)
+  client_key             = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.client_key)
+  cluster_ca_certificate = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.cluster_ca_certificate)
+  host                   = azurerm_kubernetes_cluster.main.kube_config.0.host
   load_config_file       = false
-  username               = module.aks.admin_username
-  password               = module.aks.admin_password
+  password               = azurerm_kubernetes_cluster.main.kube_config.0.password
+  username               = azurerm_kubernetes_cluster.main.kube_config.0.username
 }
 
 provider "azurerm" {
