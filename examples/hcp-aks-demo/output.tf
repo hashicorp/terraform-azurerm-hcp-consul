@@ -7,8 +7,13 @@ output "consul_url" {
   value = hcp_consul_cluster.main.consul_public_endpoint_url
 }
 
-output "hashicups_url" {
-  value = azurerm_public_ip.ip.fqdn
+# output "hashicups_url" {
+#   value = azurerm_public_ip.ip.fqdn
+# }
+
+output "kube_config_raw" {
+  value     = azurerm_kubernetes_cluster.main.kube_config_raw
+  sensitive = true
 }
 
 output "next_steps" {

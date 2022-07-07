@@ -14,17 +14,17 @@ resource "kubernetes_secret" "consul_secrets" {
 
 resource "helm_release" "consul" {
   name       = "consul"
+  chart      = "consul"
   repository = "https://helm.releases.hashicorp.com"
   version    = var.chart_version
-  chart      = "consul"
 
   values = [
     templatefile("${path.module}/templates/consul.tpl", {
-      datacenter       = var.datacenter
       consul_hosts     = jsonencode(var.consul_hosts)
-      cluster_id       = var.cluster_id
-      k8s_api_endpoint = var.k8s_api_endpoint
       consul_version   = substr(var.consul_version, 1, -1)
+      cluster_id       = var.cluster_id
+      datacenter       = var.datacenter
+      k8s_api_endpoint = var.k8s_api_endpoint
     })
   ]
 

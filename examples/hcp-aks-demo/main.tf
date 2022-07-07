@@ -5,12 +5,6 @@ resource "azurerm_resource_group" "rg" {
   name     = "${var.cluster_id}-gid"
 }
 
-resource "azurerm_route_table" "rt" {
-  location            = azurerm_resource_group.rg.location
-  name                = "${var.cluster_id}-rt"
-  resource_group_name = azurerm_resource_group.rg.name
-}
-
 resource "azurerm_network_security_group" "nsg" {
   location            = azurerm_resource_group.rg.location
   name                = "${var.cluster_id}-nsg"
@@ -34,13 +28,16 @@ resource "azurerm_virtual_network" "network" {
   }
 }
 
-resource "azurerm_public_ip" "ip" {
-  allocation_method   = "Static"
+resource "azurerm_route_table" "rt" {
   location            = azurerm_resource_group.rg.location
-  ip_version          = "IPv4"
-  name                = "${var.cluster_id}-ip"
+  name                = "${var.cluster_id}-rt"
   resource_group_name = azurerm_resource_group.rg.name
-  sku                 = "standard"
+}
+
+resource "azurerm_subnet_route_table_association" "association" {
+  count          = length(azurerm_virtual_network.network.subnet)
+  subnet_id      = tolist(azurerm_virtual_network.network.subnet)[count.index].id
+  route_table_id = azurerm_route_table.rt.id
 }
 
 resource "hcp_hvn" "hvn" {
@@ -77,6 +74,10 @@ resource "hcp_consul_cluster_root_token" "token" {
   cluster_id = hcp_consul_cluster.main.id
 }
 
+resource "random_password" "password" {
+  length = 32
+}
+
 resource "azurerm_kubernetes_cluster" "main" {
   dns_prefix              = var.cluster_id
   location                = azurerm_resource_group.rg.location
@@ -97,20 +98,17 @@ resource "azurerm_kubernetes_cluster" "main" {
     vnet_subnet_id        = tolist(azurerm_virtual_network.network.subnet)[0].id
   }
 
-  identity {
-    type = "SystemAssigned"
+  service_principal {
+    client_id     = var.cluster_id
+    client_secret = random_password.password.result
   }
 
   network_profile {
-    network_plugin     = "kubenet"
-    service_cidr       = "11.0.0.0/24"
     docker_bridge_cidr = "170.10.0.1/16"
     dns_service_ip     = "11.0.0.10"
-
-    load_balancer_sku = "standard"
-    load_balancer_profile {
-      outbound_ip_address_ids = [azurerm_public_ip.ip.id]
-    }
+    load_balancer_sku  = "standard"
+    network_plugin     = "kubenet"
+    service_cidr       = "11.0.0.0/24"
   }
 }
 
