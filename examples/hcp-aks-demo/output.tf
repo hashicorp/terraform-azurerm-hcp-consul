@@ -12,7 +12,7 @@ output "consul_url" {
 # }
 
 output "kube_config_raw" {
-  value     = azurerm_kubernetes_cluster.main.kube_config_raw
+  value     = module.aks.kube_config_raw
   sensitive = true
 }
 
