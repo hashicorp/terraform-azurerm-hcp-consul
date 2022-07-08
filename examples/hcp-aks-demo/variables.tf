@@ -18,31 +18,31 @@ variable "hvn_id" {
 
 variable "hvn_cidr_block" {
   type        = string
-  description = "The cidr block of the hvn"
+  description = "the CIDR block of the hvn"
   default     = "172.25.16.0/20"
 }
 
 variable "cluster_id" {
   type        = string
-  description = "The cluster id is unique. All other unique values will be derived from this (resource group, vnet etc)"
+  description = "the cluster id is unique. All other unique values will be derived from this (resource group, vnet etc)"
   default     = "quickstart-cluster"
 }
 
 variable "tier" {
   type        = string
-  description = "The HCP Consul tier to use when creating a Consul cluster"
+  description = "the HCP Consul tier to use when creating a Consul cluster"
   default     = "development"
 }
 
 variable "vnet_cidrs" {
   type        = list(string)
-  description = "The ciders of the vnet. This should make sense with vnet_subnets"
+  description = "the CIDR ranges of the vnet. This should make sense with vnet_subnets"
   default     = ["10.0.0.0/16"]
 }
 
 variable "vnet_subnets" {
   type        = map(string)
-  description = "The subnets associated with the vnet"
+  description = "the subnets associated with the vnet"
   default = {
     "subnet1" = "10.0.1.0/24",
     "subnet2" = "10.0.2.0/24",

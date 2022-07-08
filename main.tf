@@ -21,7 +21,6 @@ terraform {
 }
 
 locals {
-
   ingress_consul_rules = [
     {
       description = "Consul LAN Serf (tcp)"
@@ -49,7 +48,6 @@ locals {
       }
     ]
   ])
-
 }
 
 # Azure data sources unfortunately rely on name, and resource group name which will never be computed

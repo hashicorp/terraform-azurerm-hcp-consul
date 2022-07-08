@@ -75,7 +75,7 @@ resource "hcp_hvn" "hvn" {
 
 module "hcp_peering" {
   source  = "hashicorp/hcp-consul/azurerm"
-  version = "~> 0.2.0"
+  version = "~> 0.2.1"
 
   # Required
   tenant_id       = data.azurerm_subscription.current.tenant_id
@@ -103,7 +103,7 @@ resource "hcp_consul_cluster_root_token" "token" {
 
 module "vm_client" {
   source  = "hashicorp/hcp-consul/azurerm//modules/hcp-vm-client"
-  version = "~> 0.2.0"
+  version = "~> 0.2.1"
 
   resource_group = data.azurerm_resource_group.rg.name
   location       = data.azurerm_resource_group.rg.location

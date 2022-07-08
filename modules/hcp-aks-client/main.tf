@@ -1,3 +1,12 @@
+terraform {
+  required_providers {
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = ">= 2.4.1"
+    }
+  }
+}
+
 resource "kubernetes_secret" "consul_secrets" {
   metadata {
     name = "${var.cluster_id}-hcp"

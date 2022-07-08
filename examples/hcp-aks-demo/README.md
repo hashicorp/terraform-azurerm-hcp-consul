@@ -32,7 +32,11 @@ terraform init && terraform apply
 
 #### HashiCups
 
-TODO: This is not yet implemented.
+The web app is accessible from the output `hashicups_url`:
+
+```bash
+open $(terraform output -raw hashicups_url)
+```
 
 #### HCP Consul
 

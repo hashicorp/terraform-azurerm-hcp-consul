@@ -42,34 +42,35 @@ terraform {
 
 }
 
+# Configure providers to use the credentials from the AKS cluster.
 provider "helm" {
   kubernetes {
-    client_certificate     = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.client_certificate)
-    client_key             = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.client_key)
-    cluster_ca_certificate = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.cluster_ca_certificate)
-    host                   = azurerm_kubernetes_cluster.main.kube_config.0.host
-    password               = azurerm_kubernetes_cluster.main.kube_config.0.password
-    username               = azurerm_kubernetes_cluster.main.kube_config.0.username
+    client_certificate     = base64decode(azurerm_kubernetes_cluster.k8.kube_config.0.client_certificate)
+    client_key             = base64decode(azurerm_kubernetes_cluster.k8.kube_config.0.client_key)
+    cluster_ca_certificate = base64decode(azurerm_kubernetes_cluster.k8.kube_config.0.cluster_ca_certificate)
+    host                   = azurerm_kubernetes_cluster.k8.kube_config.0.host
+    password               = azurerm_kubernetes_cluster.k8.kube_config.0.password
+    username               = azurerm_kubernetes_cluster.k8.kube_config.0.username
   }
 }
 
 provider "kubernetes" {
-  client_certificate     = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.client_certificate)
-  client_key             = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.client_key)
-  cluster_ca_certificate = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.cluster_ca_certificate)
-  host                   = azurerm_kubernetes_cluster.main.kube_config.0.host
-  password               = azurerm_kubernetes_cluster.main.kube_config.0.password
-  username               = azurerm_kubernetes_cluster.main.kube_config.0.username
+  client_certificate     = base64decode(azurerm_kubernetes_cluster.k8.kube_config.0.client_certificate)
+  client_key             = base64decode(azurerm_kubernetes_cluster.k8.kube_config.0.client_key)
+  cluster_ca_certificate = base64decode(azurerm_kubernetes_cluster.k8.kube_config.0.cluster_ca_certificate)
+  host                   = azurerm_kubernetes_cluster.k8.kube_config.0.host
+  password               = azurerm_kubernetes_cluster.k8.kube_config.0.password
+  username               = azurerm_kubernetes_cluster.k8.kube_config.0.username
 }
 
 provider "kubectl" {
-  client_certificate     = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.client_certificate)
-  client_key             = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.client_key)
-  cluster_ca_certificate = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.cluster_ca_certificate)
-  host                   = azurerm_kubernetes_cluster.main.kube_config.0.host
+  client_certificate     = base64decode(azurerm_kubernetes_cluster.k8.kube_config.0.client_certificate)
+  client_key             = base64decode(azurerm_kubernetes_cluster.k8.kube_config.0.client_key)
+  cluster_ca_certificate = base64decode(azurerm_kubernetes_cluster.k8.kube_config.0.cluster_ca_certificate)
+  host                   = azurerm_kubernetes_cluster.k8.kube_config.0.host
   load_config_file       = false
-  password               = azurerm_kubernetes_cluster.main.kube_config.0.password
-  username               = azurerm_kubernetes_cluster.main.kube_config.0.username
+  password               = azurerm_kubernetes_cluster.k8.kube_config.0.password
+  username               = azurerm_kubernetes_cluster.k8.kube_config.0.username
 }
 
 provider "azurerm" {
@@ -88,48 +89,41 @@ provider "consul" {
 data "azurerm_subscription" "current" {}
 
 resource "azurerm_resource_group" "rg" {
-  location = local.network_region
   name     = "${local.cluster_id}-gid"
+  location = local.network_region
 }
 
 resource "azurerm_route_table" "rt" {
-  location            = azurerm_resource_group.rg.location
   name                = "${local.cluster_id}-rt"
   resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
 }
 
 resource "azurerm_network_security_group" "nsg" {
-  location            = azurerm_resource_group.rg.location
   name                = "${local.cluster_id}-nsg"
+  location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 }
 
-resource "azurerm_virtual_network" "network" {
+# Create an Azure vnet and authorize Consul server traffic.
+module "network" {
+  source              = "Azure/vnet/azurerm"
   address_space       = local.vnet_cidrs
-  location            = azurerm_resource_group.rg.location
-  name                = "${local.cluster_id}-vnet"
   resource_group_name = azurerm_resource_group.rg.name
+  subnet_names        = keys(local.vnet_subnets)
+  subnet_prefixes     = values(local.vnet_subnets)
+  vnet_name           = "${local.cluster_id}-vnet"
 
-  dynamic "subnet" {
-    for_each = local.vnet_subnets
+  # Every subnet will share a single route table
+  route_tables_ids = { for i, subnet in keys(local.vnet_subnets) : subnet => azurerm_route_table.rt.id }
 
-    content {
-      name           = subnet.key
-      address_prefix = subnet.value
-      security_group = azurerm_network_security_group.nsg.id
-    }
-  }
+  # Every subnet will share a single network security group
+  nsg_ids = { for i, subnet in keys(local.vnet_subnets) : subnet => azurerm_network_security_group.nsg.id }
+
+  depends_on = [azurerm_resource_group.rg]
 }
 
-resource "azurerm_public_ip" "ip" {
-  allocation_method   = "Static"
-  location            = azurerm_resource_group.rg.location
-  ip_version          = "IPv4"
-  name                = "${local.cluster_id}-ip"
-  resource_group_name = azurerm_resource_group.rg.name
-  sku                 = "standard"
-}
-
+# Create an HCP HVN.
 resource "hcp_hvn" "hvn" {
   cidr_block     = "172.25.32.0/20"
   cloud_provider = "azure"
@@ -137,22 +131,24 @@ resource "hcp_hvn" "hvn" {
   region         = local.hvn_region
 }
 
+# Peer the HVN to the vnet.
 module "hcp_peering" {
-  #source  = "hashicorp/hcp-consul/azurerm"
-  #version = "~> X.X.X"
-  # TODO: Revert to above once this is published
-  source = "../.."
+  source  = "hashicorp/hcp-consul/azurerm"
+  version = "~> 0.2.1"
 
-  hvn                  = hcp_hvn.hvn
-  prefix               = local.cluster_id
+  hvn    = hcp_hvn.hvn
+  prefix = local.cluster_id
+
   security_group_names = [azurerm_network_security_group.nsg.name]
-  subnet_ids           = [for s in azurerm_virtual_network.network.subnet : s.id]
   subscription_id      = data.azurerm_subscription.current.subscription_id
   tenant_id            = data.azurerm_subscription.current.tenant_id
-  vnet_id              = azurerm_virtual_network.network.id
-  vnet_rg              = azurerm_resource_group.rg.name
+
+  subnet_ids = module.network.vnet_subnets
+  vnet_id    = module.network.vnet_id
+  vnet_rg    = azurerm_resource_group.rg.name
 }
 
+# Create the Consul cluster.
 resource "hcp_consul_cluster" "main" {
   cluster_id      = local.cluster_id
   hvn_id          = hcp_hvn.hvn.hvn_id
@@ -164,53 +160,54 @@ resource "hcp_consul_cluster_root_token" "token" {
   cluster_id = hcp_consul_cluster.main.id
 }
 
-resource "azurerm_kubernetes_cluster" "main" {
+# Create a user assigned identity (required for UserAssigned identity in combination with brining our own subnet/nsg/etc)
+resource "azurerm_user_assigned_identity" "identity" {
+  name                = "aks-identity"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+}
+
+# Create the AKS cluster.
+resource "azurerm_kubernetes_cluster" "k8" {
+  name                    = local.cluster_id
   dns_prefix              = local.cluster_id
   location                = azurerm_resource_group.rg.location
-  name                    = local.cluster_id
   private_cluster_enabled = false
   resource_group_name     = azurerm_resource_group.rg.name
-  sku_tier                = "Free"
+
+  network_profile {
+    network_plugin     = "azure"
+    service_cidr       = "10.30.0.0/16"
+    dns_service_ip     = "10.30.0.10"
+    docker_bridge_cidr = "172.17.0.1/16"
+  }
 
   default_node_pool {
-    enable_auto_scaling   = true
-    enable_node_public_ip = true
-    max_count             = 2
-    max_pods              = 100
-    min_count             = 1
-    name                  = "nodepool"
-    os_disk_size_gb       = 50
-    vm_size               = "Standard_DS2_v2"
-    vnet_subnet_id        = tolist(azurerm_virtual_network.network.subnet)[0].id
+    name            = "default"
+    node_count      = 3
+    vm_size         = "Standard_D2_v2"
+    os_disk_size_gb = 30
+    pod_subnet_id   = module.network.vnet_subnets[0]
+    vnet_subnet_id  = module.network.vnet_subnets[1]
   }
 
   identity {
-    type = "SystemAssigned"
+    type                      = "UserAssigned"
+    user_assigned_identity_id = azurerm_user_assigned_identity.identity.id
   }
 
-  network_profile {
-    network_plugin     = "kubenet"
-    service_cidr       = "11.0.0.0/24"
-    docker_bridge_cidr = "170.10.0.1/16"
-    dns_service_ip     = "11.0.0.10"
-
-    load_balancer_sku = "standard"
-    load_balancer_profile {
-      outbound_ip_address_ids = [azurerm_public_ip.ip.id]
-    }
-  }
+  depends_on = [module.network]
 }
 
+# Create a Kubernetes client that deploys Consul and its secrets.
 module "aks_consul_client" {
-  #source  = "hashicorp/hcp-consul/azurerm//modules/hcp-aks-client"
-  #version = "~> X.X.X"
-  # TODO: Revert to above once this is published
-  source = "../../modules/hcp-aks-client"
+  source  = "hashicorp/hcp-consul/azurerm//modules/hcp-aks-client"
+  version = "~> 0.2.1"
 
   cluster_id       = hcp_consul_cluster.main.cluster_id
   consul_hosts     = jsondecode(base64decode(hcp_consul_cluster.main.consul_config_file))["retry_join"]
   consul_version   = hcp_consul_cluster.main.consul_version
-  k8s_api_endpoint = azurerm_kubernetes_cluster.main.kube_config.0.host
+  k8s_api_endpoint = azurerm_kubernetes_cluster.k8.kube_config.0.host
 
   boostrap_acl_token    = hcp_consul_cluster_root_token.token.secret_id
   consul_ca_file        = base64decode(hcp_consul_cluster.main.consul_ca_file)
@@ -220,15 +217,32 @@ module "aks_consul_client" {
   # The AKS node group will fail to create if the clients are
   # created at the same time. This forces the client to wait until
   # the node group is successfully created.
-  depends_on = [azurerm_kubernetes_cluster.main]
+  depends_on = [azurerm_kubernetes_cluster.k8]
 }
 
+# Deploy Hashicups.
 module "demo_app" {
-  source = "../../modules/k8s-demo-app"
-  # source  = "hashicorp/hcp-consul/azurerm//modules/k8s-demo-app"
-  # version = "~> X.X.X"
+  source  = "hashicorp/hcp-consul/azurerm//modules/k8s-demo-app"
+  version = "~> 0.2.1"
 
   depends_on = [module.aks_consul_client]
+}
+
+# Authorize HTTP ingress to the load balancer.
+resource "azurerm_network_security_rule" "ingress" {
+  name                        = "http-ingress"
+  priority                    = 301
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "80"
+  source_address_prefix       = "*"
+  destination_address_prefix  = module.demo_app.load_balancer_ip
+  resource_group_name         = azurerm_resource_group.rg.name
+  network_security_group_name = azurerm_network_security_group.nsg.name
+
+  depends_on = [module.demo_app]
 }
 output "consul_root_token" {
   value     = hcp_consul_cluster_root_token.token.secret_id
@@ -240,9 +254,14 @@ output "consul_url" {
 }
 
 output "hashicups_url" {
-  value = azurerm_public_ip.ip.fqdn
+  value = module.demo_app.hashicups_url
 }
 
 output "next_steps" {
   value = "Hashicups Application will be ready in ~2 minutes. Use 'terraform output consul_root_token' to retrieve the root token."
+}
+
+output "kube_config_raw" {
+  value     = azurerm_kubernetes_cluster.k8.kube_config_raw
+  sensitive = true
 }
