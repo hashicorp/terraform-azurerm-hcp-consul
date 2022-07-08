@@ -6,6 +6,7 @@ locals {
   vnet_cidrs     = ["10.0.0.0/16"]
   vnet_subnets = {
     "subnet1" = "10.0.1.0/24",
+    "subnet2" = "10.0.2.0/24",
   }
 }
 
@@ -134,7 +135,7 @@ resource "hcp_hvn" "hvn" {
 # Peer the HVN to the vnet.
 module "hcp_peering" {
   source  = "hashicorp/hcp-consul/azurerm"
-  version = "~> 0.2.1"
+  version = "~> 0.2.5"
 
   hvn    = hcp_hvn.hvn
   prefix = local.cluster_id
@@ -202,7 +203,7 @@ resource "azurerm_kubernetes_cluster" "k8" {
 # Create a Kubernetes client that deploys Consul and its secrets.
 module "aks_consul_client" {
   source  = "hashicorp/hcp-consul/azurerm//modules/hcp-aks-client"
-  version = "~> 0.2.1"
+  version = "~> 0.2.5"
 
   cluster_id       = hcp_consul_cluster.main.cluster_id
   consul_hosts     = jsondecode(base64decode(hcp_consul_cluster.main.consul_config_file))["retry_join"]
@@ -223,7 +224,7 @@ module "aks_consul_client" {
 # Deploy Hashicups.
 module "demo_app" {
   source  = "hashicorp/hcp-consul/azurerm//modules/k8s-demo-app"
-  version = "~> 0.2.1"
+  version = "~> 0.2.5"
 
   depends_on = [module.aks_consul_client]
 }

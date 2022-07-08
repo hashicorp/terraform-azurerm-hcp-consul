@@ -5,7 +5,8 @@ locals {
   subscription_id = "{{ .SubscriptionID }}"
   vnet_rg_name    = "{{ .VnetRgName }}"
   vnet_id         = "/subscriptions/{{ .SubscriptionID }}/resourceGroups/{{ .VnetRgName }}/providers/Microsoft.Network/virtualNetworks/{{ .VnetName }}"
-  subnet_id       = "/subscriptions/{{ .SubscriptionID }}/resourceGroups/{{ .VnetRgName }}/providers/Microsoft.Network/virtualNetworks/{{ .VnetName }}/subnets/{{ .SubnetName }}"
+  subnet1_id      = "/subscriptions/{{ .SubscriptionID }}/resourceGroups/{{ .VnetRgName }}/providers/Microsoft.Network/virtualNetworks/{{ .VnetName }}/subnets/{{ .Subnet1Name }}"
+  subnet2_id      = "/subscriptions/{{ .SubscriptionID }}/resourceGroups/{{ .VnetRgName }}/providers/Microsoft.Network/virtualNetworks/{{ .VnetName }}/subnets/{{ .Subnet2Name }}"
 }
 
 terraform {
@@ -133,7 +134,7 @@ resource "hcp_hvn" "hvn" {
 # Peer the HVN to the vnet.
 module "hcp_peering" {
   source  = "hashicorp/hcp-consul/azurerm"
-  version = "~> 0.2.1"
+  version = "~> 0.2.5"
 
   hvn    = hcp_hvn.hvn
   prefix = local.cluster_id
@@ -142,7 +143,7 @@ module "hcp_peering" {
   subscription_id      = data.azurerm_subscription.current.subscription_id
   tenant_id            = data.azurerm_subscription.current.tenant_id
 
-  subnet_ids = [local.subnet_id]
+  subnet_ids = [local.subnet1_id, local.subnet2_id]
   vnet_id    = local.vnet_id
   vnet_rg    = data.azurerm_resource_group.rg.name
 }
@@ -186,8 +187,8 @@ resource "azurerm_kubernetes_cluster" "k8" {
     node_count      = 3
     vm_size         = "Standard_D2_v2"
     os_disk_size_gb = 30
-    pod_subnet_id   = local.subnet_id
-    vnet_subnet_id  = [local.subnet_id][1]
+    pod_subnet_id   = local.subnet1_id
+    vnet_subnet_id  = local.subnet2_id
   }
 
   identity {
@@ -201,7 +202,7 @@ resource "azurerm_kubernetes_cluster" "k8" {
 # Create a Kubernetes client that deploys Consul and its secrets.
 module "aks_consul_client" {
   source  = "hashicorp/hcp-consul/azurerm//modules/hcp-aks-client"
-  version = "~> 0.2.1"
+  version = "~> 0.2.5"
 
   cluster_id       = hcp_consul_cluster.main.cluster_id
   consul_hosts     = jsondecode(base64decode(hcp_consul_cluster.main.consul_config_file))["retry_join"]
@@ -222,7 +223,7 @@ module "aks_consul_client" {
 # Deploy Hashicups.
 module "demo_app" {
   source  = "hashicorp/hcp-consul/azurerm//modules/k8s-demo-app"
-  version = "~> 0.2.1"
+  version = "~> 0.2.5"
 
   depends_on = [module.aks_consul_client]
 }

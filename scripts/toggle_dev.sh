@@ -20,8 +20,8 @@ isDev () {
   echo $?
 }
 
-dev=$(isDev "vm")
-for platform in vm; do
+for platform in vm aks; do
+  dev=$(isDev $platform)
   if [ $dev -eq 0 ]; then
     prod $platform
   else

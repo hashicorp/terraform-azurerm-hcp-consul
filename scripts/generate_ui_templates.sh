@@ -18,8 +18,9 @@ generate_base_existing_vnet_terraform () {
       | sed -e 's/resource "azurerm_resource_group" "rg"/data "azurerm_resource_group" "rg"/g' \
       | sed -e 's/azurerm_resource_group.rg/data.azurerm_resource_group.rg/g' \
       | sed -e 's/module\.network.vnet_id/local.vnet_id/g' \
-      | sed -e 's/module\.network.vnet_subnets\[0\]/local.subnet_id/g' \
-      | sed -e 's/module\.network.vnet_subnets/[local.subnet_id]/g' 
+      | sed -e 's/module\.network.vnet_subnets\[0\]/local.subnet1_id/g' \
+      | sed -e 's/module\.network.vnet_subnets\[1\]/local.subnet2_id/g' \
+      | sed -e 's/module\.network.vnet_subnets/\[local.subnet1_id\]/g'
 }
 
 generate_existing_vnet_terraform () {
@@ -34,7 +35,8 @@ generate_existing_vnet_terraform () {
       generate_base_existing_vnet_terraform $1 \
         | sed -e '/resource "azurerm_virtual_network/,+15d' \
         | sed -e 's/azurerm_virtual_network\.network\.id/local\.vnet_id/' \
-        | sed -e 's/azurerm_virtual_network\.network\.subnet/\[local\.subnet_id\]/'
+        | sed -e 's/azurerm_virtual_network\.network\.subnet/local\.subnet_id/' \
+        | sed -e 's/\[local.subnet1_id\]/\[local.subnet1_id,local.subnet2_id\]/g' # horrible but only aks requires two subnets
       ;;
   esac
 }
@@ -42,7 +44,7 @@ generate_existing_vnet_terraform () {
 generate_existing_vnet_locals() {
   echo "locals {"
   cat scripts/snips/locals.snip 
-  cat scripts/snips/locals_existing_vnet.snip
+  cat "scripts/snips/$1_locals_existing_vnet.snip"
   echo "}"
   echo ""
 }
@@ -50,7 +52,7 @@ generate_existing_vnet_locals() {
 generate_locals () {
   echo "locals {"
   cat scripts/snips/locals.snip 
-  cat scripts/snips/locals_new_vnet.snip
+  cat "scripts/snips/$1_locals_new_vnet.snip"
   echo "}"
   echo ""
 }
@@ -58,7 +60,7 @@ generate_locals () {
 generate() {
   file=hcp-ui-templates/$1/main.tf
   mkdir -p $(dirname $file)
-  generate_locals > $file
+  generate_locals $1 > $file
   generate_base_terraform $1 >> $file
 
   file=hcp-ui-templates/$1-existing-vnet/main.tf

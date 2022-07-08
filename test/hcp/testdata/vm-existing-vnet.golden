@@ -5,7 +5,7 @@ locals {
   subscription_id = "26310ff2-35ad-4839-83fb-0f82f258779f"
   vnet_rg_name    = "myvnetresourcegroup"
   vnet_id         = "/subscriptions/26310ff2-35ad-4839-83fb-0f82f258779f/resourceGroups/myvnetresourcegroup/providers/Microsoft.Network/virtualNetworks/myvnetname"
-  subnet_id       = "/subscriptions/26310ff2-35ad-4839-83fb-0f82f258779f/resourceGroups/myvnetresourcegroup/providers/Microsoft.Network/virtualNetworks/myvnetname/subnets/mysubnetname"
+  subnet1_id      = "/subscriptions/26310ff2-35ad-4839-83fb-0f82f258779f/resourceGroups/myvnetresourcegroup/providers/Microsoft.Network/virtualNetworks/myvnetname/subnets/mysubnetname"
 }
 
 
@@ -75,7 +75,7 @@ resource "hcp_hvn" "hvn" {
 
 module "hcp_peering" {
   source  = "hashicorp/hcp-consul/azurerm"
-  version = "~> 0.2.1"
+  version = "~> 0.2.5"
 
   # Required
   tenant_id       = data.azurerm_subscription.current.tenant_id
@@ -83,7 +83,7 @@ module "hcp_peering" {
   hvn             = hcp_hvn.hvn
   vnet_rg         = data.azurerm_resource_group.rg.name
   vnet_id         = local.vnet_id
-  subnet_ids      = [local.subnet_id]
+  subnet_ids      = [local.subnet1_id]
 
   # Optional
   security_group_names = [azurerm_network_security_group.nsg.name]
@@ -103,7 +103,7 @@ resource "hcp_consul_cluster_root_token" "token" {
 
 module "vm_client" {
   source  = "hashicorp/hcp-consul/azurerm//modules/hcp-vm-client"
-  version = "~> 0.2.1"
+  version = "~> 0.2.5"
 
   resource_group = data.azurerm_resource_group.rg.name
   location       = data.azurerm_resource_group.rg.location
@@ -111,7 +111,7 @@ module "vm_client" {
   nsg_name                 = azurerm_network_security_group.nsg.name
   allowed_ssh_cidr_blocks  = ["0.0.0.0/0"]
   allowed_http_cidr_blocks = ["0.0.0.0/0"]
-  subnet_id                = local.subnet_id
+  subnet_id                = local.subnet1_id
 
   vm_admin_password = random_string.vm_admin_password.result
 
