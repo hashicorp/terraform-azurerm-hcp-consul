@@ -33,7 +33,8 @@ generate_existing_vnet_terraform () {
       ;;
     aks)
       generate_base_existing_vnet_terraform $1 \
-        | sed -e '/resource "azurerm_virtual_network/,+15d' \
+        | sed -e '/Create an Azure vnet and authorize Consul server traffic./,+17d' \
+        | sed -e '/module\.network/,+d' \
         | sed -e 's/azurerm_virtual_network\.network\.id/local\.vnet_id/' \
         | sed -e 's/azurerm_virtual_network\.network\.subnet/local\.subnet_id/' \
         | sed -e 's/\[local.subnet1_id\]/\[local.subnet1_id,local.subnet2_id\]/g' # horrible but only aks requires two subnets

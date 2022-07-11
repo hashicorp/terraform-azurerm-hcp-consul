@@ -110,24 +110,6 @@ resource "azurerm_network_security_group" "nsg" {
   resource_group_name = data.azurerm_resource_group.rg.name
 }
 
-# Create an Azure vnet and authorize Consul server traffic.
-module "network" {
-  source              = "Azure/vnet/azurerm"
-  address_space       = local.vnet_cidrs
-  resource_group_name = data.azurerm_resource_group.rg.name
-  subnet_names        = keys(local.vnet_subnets)
-  subnet_prefixes     = values(local.vnet_subnets)
-  vnet_name           = "${local.cluster_id}-vnet"
-
-  # Every subnet will share a single route table
-  route_tables_ids = { for i, subnet in keys(local.vnet_subnets) : subnet => azurerm_route_table.rt.id }
-
-  # Every subnet will share a single network security group
-  nsg_ids = { for i, subnet in keys(local.vnet_subnets) : subnet => azurerm_network_security_group.nsg.id }
-
-  depends_on = [data.azurerm_resource_group.rg]
-}
-
 # Create an HCP HVN.
 resource "hcp_hvn" "hvn" {
   cidr_block     = "172.25.32.0/20"
@@ -201,7 +183,6 @@ resource "azurerm_kubernetes_cluster" "k8" {
     user_assigned_identity_id = azurerm_user_assigned_identity.identity.id
   }
 
-  depends_on = [module.network]
 }
 
 # Create a Kubernetes client that deploys Consul and its secrets.
