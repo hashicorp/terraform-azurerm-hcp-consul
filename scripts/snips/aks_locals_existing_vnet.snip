@@ -1,0 +1,10 @@
+  subscription_id = "{{ .SubscriptionID }}"
+  vnet_rg_name    = "{{ .VnetRgName }}"
+  vnet_id         = "/subscriptions/{{ .SubscriptionID }}/resourceGroups/{{ .VnetRgName }}/providers/Microsoft.Network/virtualNetworks/{{ .VnetName }}"
+  vnet_cidrs      = ["{{ .VnetCidr }}"]
+  subnet1_id      = "/subscriptions/{{ .SubscriptionID }}/resourceGroups/{{ .VnetRgName }}/providers/Microsoft.Network/virtualNetworks/{{ .VnetName }}/subnets/{{ .Subnet1Name }}"
+  subnet2_id      = "/subscriptions/{{ .SubscriptionID }}/resourceGroups/{{ .VnetRgName }}/providers/Microsoft.Network/virtualNetworks/{{ .VnetName }}/subnets/{{ .Subnet2Name }}"
+  vnet_subnets    = {
+    "subnet1" = local.subnet1_id,
+    "subnet2" = local.subnet2_id,
+  }

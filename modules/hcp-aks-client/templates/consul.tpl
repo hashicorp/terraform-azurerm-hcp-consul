@@ -35,7 +35,19 @@ client:
     terraform-module: "hcp-aks-client"
 
 connectInject:
+  transparentProxy:
+    defaultEnabled: true
   enabled: true
+  default: true
 
 controller:
   enabled: true
+
+ingressGateways:
+  enabled: true
+  gateways:
+    - name: ingress-gateway
+      service:
+        type: LoadBalancer
+        ports:
+        - port: 80

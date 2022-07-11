@@ -32,12 +32,29 @@ terraform init && terraform apply
 
 #### HashiCups
 
-TODO: This is not yet implemented.
+The web app is accessible from the output `hashicups_url`:
+
+```bash
+open $(terraform output -raw hashicups_url)
+```
 
 #### HCP Consul
 
-The HCP Consul cluster's UI can be accessed via the outputs `consul_url` and `consul_root_token`.
+The HCP Consul cluster's UI can be accessed via the outputs `consul_url` and `consul_root_token`:
+
+```bash
+echo "token: $(terraform output -raw consul_root_token)"
+open $(terraform output -raw consul_url)
+```
 
 #### AKS Cluster
 
-The AKS cluster can be accessed via TODO
+The AKS cluster can be accessed via `kubectl` and the config in the `kube_config_raw` output. For example:
+
+```bash
+conf=~/hashicups_cluster.conf
+terraform output -raw kube_config_raw > $conf
+export KUBECONFIG=$conf
+
+kubectl get pods
+```
