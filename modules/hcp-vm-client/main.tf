@@ -89,7 +89,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
 
   user_data = base64encode(templatefile("${path.module}/templates/user_data.sh", {
     setup = base64gzip(templatefile("${path.module}/templates/setup.sh", {
-      subnet_id        = var.subnet_id,
+      node_id          = var.node_id,
       consul_config    = var.client_config_file,
       consul_ca        = var.client_ca_file,
       consul_acl_token = var.root_token,
