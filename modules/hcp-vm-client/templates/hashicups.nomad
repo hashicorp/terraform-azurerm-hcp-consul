@@ -1,26 +1,26 @@
 variable "frontend_port" {
-  type        = number
-  default     = 3000
+  type    = number
+  default = 3000
 }
 
 variable "public_api_port" {
-  type        = number
-  default     = 7070
+  type    = number
+  default = 7070
 }
 
 variable "payment_api_port" {
-  type        = number
-  default     = 8080
+  type    = number
+  default = 8080
 }
 
 variable "product_api_port" {
-  type        = number
-  default     = 9090
+  type    = number
+  default = 9090
 }
 
 variable "product_db_port" {
-  type        = number
-  default     = 5432
+  type    = number
+  default = 5432
 }
 
 job "hashicups" {
@@ -51,6 +51,13 @@ job "hashicups" {
       env {
         NEXT_PUBLIC_PUBLIC_API_URL = "/"
       }
+    }
+
+    restart {
+      interval = "30m"
+      attempts = 15
+      delay    = "30s"
+      mode     = "fail"
     }
   }
 
@@ -92,10 +99,17 @@ job "hashicups" {
       }
 
       env {
-        BIND_ADDRESS = ":${var.public_api_port}"
+        BIND_ADDRESS    = ":${var.public_api_port}"
         PRODUCT_API_URI = "http://localhost:${var.product_api_port}"
         PAYMENT_API_URI = "http://localhost:${var.payment_api_port}"
       }
+    }
+
+    restart {
+      interval = "30m"
+      attempts = 15
+      delay    = "30s"
+      mode     = "fail"
     }
   }
 
@@ -124,6 +138,13 @@ job "hashicups" {
         image = "hashicorpdemoapp/payments:v0.0.16"
         ports = ["http"]
       }
+    }
+
+    restart {
+      interval = "30m"
+      attempts = 15
+      delay    = "30s"
+      mode     = "fail"
     }
   }
 
@@ -177,6 +198,13 @@ job "hashicups" {
         BIND_ADDRESS  = "localhost:${var.product_api_port}"
       }
     }
+
+    restart {
+      interval = "30m"
+      attempts = 15
+      delay    = "30s"
+      mode     = "fail"
+    }
   }
 
   group "product-db" {
@@ -210,6 +238,13 @@ job "hashicups" {
         POSTGRES_USER     = "postgres"
         POSTGRES_PASSWORD = "password"
       }
+    }
+
+    restart {
+      interval = "30m"
+      attempts = 15
+      delay    = "30s"
+      mode     = "fail"
     }
   }
 }
