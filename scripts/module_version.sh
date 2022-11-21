@@ -1,7 +1,7 @@
 #!/bin/bash
 
-old="0\.2\.7"
-new=0.2.8
+old="0\.2\.8"
+new=0.3.0
 
 for platform in vm aks; do
   file=examples/hcp-$platform-demo/main.tf
