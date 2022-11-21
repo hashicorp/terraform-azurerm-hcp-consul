@@ -34,16 +34,6 @@ module "network" {
   nsg_ids = { for i, subnet in keys(var.vnet_subnets) : subnet => azurerm_network_security_group.nsg.id }
 
   depends_on = [azurerm_resource_group.rg]
-
-  subnet_delegation = {
-    "subnet1" = {
-      "aks-delegation" = {
-        service_name    = "Microsoft.ContainerService/managedClusters"
-        service_actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
-      }
-    }
-  }
-
 }
 
 # Create an HCP HVN.
