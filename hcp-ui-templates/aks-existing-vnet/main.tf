@@ -109,6 +109,7 @@ resource "azurerm_network_security_group" "nsg" {
   resource_group_name = data.azurerm_resource_group.rg.name
 }
 
+
 # Create an HCP HVN.
 resource "hcp_hvn" "hvn" {
   cidr_block     = "172.25.32.0/20"
@@ -117,29 +118,31 @@ resource "hcp_hvn" "hvn" {
   region         = local.hvn_region
 }
 
+# Note: Uncomment the below module to setup peering for connecting to a private HCP Consul cluster
 # Peer the HVN to the vnet.
-module "hcp_peering" {
-  source  = "hashicorp/hcp-consul/azurerm"
-  version = "~> 0.2.8"
+# module "hcp_peering" {
+#   source  = "hashicorp/hcp-consul/azurerm"
+#   version = "~> 0.3.0"
 
-  hvn    = hcp_hvn.hvn
-  prefix = local.cluster_id
+#   hvn    = hcp_hvn.hvn
+#   prefix = local.cluster_id
 
-  security_group_names = [azurerm_network_security_group.nsg.name]
-  subscription_id      = data.azurerm_subscription.current.subscription_id
-  tenant_id            = data.azurerm_subscription.current.tenant_id
+#   security_group_names = [azurerm_network_security_group.nsg.name]
+#   subscription_id      = data.azurerm_subscription.current.subscription_id
+#   tenant_id            = data.azurerm_subscription.current.tenant_id
 
-  subnet_ids = [local.subnet1_id, local.subnet2_id]
-  vnet_id    = local.vnet_id
-  vnet_rg    = data.azurerm_resource_group.rg.name
-}
+#   subnet_ids = [local.subnet1_id,local.subnet2_id]
+#   vnet_id    = local.vnet_id
+#   vnet_rg    = data.azurerm_resource_group.rg.name
+# }
 
 # Create the Consul cluster.
 resource "hcp_consul_cluster" "main" {
-  cluster_id      = local.cluster_id
-  hvn_id          = hcp_hvn.hvn.hvn_id
-  public_endpoint = true
-  tier            = "development"
+  cluster_id         = local.cluster_id
+  hvn_id             = hcp_hvn.hvn.hvn_id
+  public_endpoint    = true
+  tier               = "development"
+  min_consul_version = "v1.14.0"
 }
 
 resource "hcp_consul_cluster_root_token" "token" {
@@ -187,17 +190,15 @@ resource "azurerm_kubernetes_cluster" "k8" {
 # Create a Kubernetes client that deploys Consul and its secrets.
 module "aks_consul_client" {
   source  = "hashicorp/hcp-consul/azurerm//modules/hcp-aks-client"
-  version = "~> 0.2.8"
+  version = "~> 0.3.0"
 
-  cluster_id       = hcp_consul_cluster.main.cluster_id
-  consul_hosts     = jsondecode(base64decode(hcp_consul_cluster.main.consul_config_file))["retry_join"]
-  consul_version   = hcp_consul_cluster.main.consul_version
-  k8s_api_endpoint = azurerm_kubernetes_cluster.k8.kube_config.0.host
-
-  boostrap_acl_token    = hcp_consul_cluster_root_token.token.secret_id
-  consul_ca_file        = base64decode(hcp_consul_cluster.main.consul_ca_file)
-  datacenter            = hcp_consul_cluster.main.datacenter
-  gossip_encryption_key = jsondecode(base64decode(hcp_consul_cluster.main.consul_config_file))["encrypt"]
+  cluster_id = hcp_consul_cluster.main.cluster_id
+  # strip out `https://` from the public url
+  consul_hosts       = tolist([substr(hcp_consul_cluster.main.consul_public_endpoint_url, 8, -1)])
+  consul_version     = hcp_consul_cluster.main.consul_version
+  k8s_api_endpoint   = azurerm_kubernetes_cluster.k8.kube_config.0.host
+  boostrap_acl_token = hcp_consul_cluster_root_token.token.secret_id
+  datacenter         = hcp_consul_cluster.main.datacenter
 
   # The AKS node group will fail to create if the clients are
   # created at the same time. This forces the client to wait until
@@ -208,7 +209,7 @@ module "aks_consul_client" {
 # Deploy Hashicups.
 module "demo_app" {
   source  = "hashicorp/hcp-consul/azurerm//modules/k8s-demo-app"
-  version = "~> 0.2.8"
+  version = "~> 0.3.0"
 
   depends_on = [module.aks_consul_client]
 }
@@ -221,7 +222,7 @@ resource "azurerm_network_security_rule" "ingress" {
   access                      = "Allow"
   protocol                    = "Tcp"
   source_port_range           = "*"
-  destination_port_range      = "80"
+  destination_port_range      = "8080"
   source_address_prefix       = "*"
   destination_address_prefix  = module.demo_app.load_balancer_ip
   resource_group_name         = data.azurerm_resource_group.rg.name
@@ -239,7 +240,7 @@ output "consul_url" {
 }
 
 output "hashicups_url" {
-  value = module.demo_app.hashicups_url
+  value = "${module.demo_app.hashicups_url}:8080"
 }
 
 output "next_steps" {
