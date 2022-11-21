@@ -8,7 +8,7 @@ output "consul_url" {
 }
 
 output "hashicups_url" {
-  value = module.demo_app.hashicups_url
+  value = "${module.demo_app.hashicups_url}:8080"
 }
 
 output "next_steps" {

@@ -9,19 +9,10 @@ variable "boostrap_acl_token" {
   description = "The ACL bootstrap token used to create necessary ACL tokens for the Helm chart"
 }
 
-variable "gossip_encryption_key" {
-  type        = string
-  description = "The gossip encryption key of the Consul cluster"
-}
-
-variable "consul_ca_file" {
-  type        = string
-  description = "The Consul CA certificate bundle used to validate TLS connections"
-}
 
 variable "datacenter" {
   type        = string
-  description = "The name of the Consul datacenter that client agents should register as"
+  description = "The name of the Consul datacenter"
 }
 
 variable "consul_hosts" {
@@ -53,5 +44,29 @@ variable "consul_version" {
 variable "chart_version" {
   type        = string
   description = "The Consul Helm chart version to use"
-  default     = "0.40.0"
+  default     = "1.0.0"
+}
+
+variable "gossip_encryption_key" {
+  type        = string
+  description = "The gossip encryption key of the Consul cluster. Not required for chart_version >= 1.0.0."
+  default     = ""
+}
+
+variable "consul_ca_file" {
+  type        = string
+  description = "The Consul CA certificate bundle used to validate TLS connections. Not required for chart_version >= 1.0.0."
+  default     = ""
+}
+
+variable "helm_values_path" {
+  description = "Where to save the Helm Values file. Assumed to be a directory if the value ends with a forward slash `/`."
+  type        = string
+  default     = "./"
+}
+
+variable "helm_values_file_permission" {
+  description = "File permission of the helmvalues file"
+  type        = string
+  default     = "0600"
 }
