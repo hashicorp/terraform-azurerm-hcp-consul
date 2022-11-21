@@ -24,7 +24,7 @@ client:
   enabled: true
   join: ${consul_hosts}
   nodeMeta:
-    terraform-module: "hcp-eks-client"
+    terraform-module: "hcp-aks-client"
 
 controller:
   enabled: true
