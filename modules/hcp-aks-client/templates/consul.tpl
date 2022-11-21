@@ -10,6 +10,7 @@ global:
       secretKey: bootstrapToken
   tls:
     enabled: true
+
 %{ if consul_client_agent ~}
     enableAutoEncrypt: true
     caCert:
@@ -23,7 +24,10 @@ client:
   enabled: true
   join: ${consul_hosts}
   nodeMeta:
-    terraform-module: "hcp-aks-client"
+    terraform-module: "hcp-eks-client"
+
+controller:
+  enabled: true
 %{ endif ~}
 
 externalServers:
@@ -38,7 +42,7 @@ server:
 
 connectInject:
   transparentProxy:
-    defaultEnabled: false
+    defaultEnabled: true
   enabled: true
   default: true
 %{ if !consul_client_agent ~}
@@ -46,9 +50,6 @@ connectInject:
     meta:
       terraform-module: "hcp-aks-client"
 %{ endif ~}
-
-controller:
-  enabled: true
 
 ingressGateways:
   enabled: true

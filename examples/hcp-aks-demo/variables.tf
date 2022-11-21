@@ -25,7 +25,7 @@ variable "hvn_cidr_block" {
 variable "cluster_id" {
   type        = string
   description = "the cluster id is unique. All other unique values will be derived from this (resource group, vnet etc)"
-  default     = "riddhi8-az-114beta1"
+  default     = "quickstart-cluster"
 }
 
 variable "tier" {

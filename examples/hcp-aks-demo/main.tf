@@ -35,6 +35,15 @@ module "network" {
 
   depends_on = [azurerm_resource_group.rg]
 
+  subnet_delegation = {
+    "subnet1" = {
+      "aks-delegation" = {
+        service_name    = "Microsoft.ContainerService/managedClusters"
+        service_actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
+      }
+    }
+  }
+
 }
 
 # Create an HCP HVN.
@@ -46,7 +55,7 @@ module "network" {
 # }
 
 data "hcp_hvn" "example" {
-  hvn_id = "hvn-azure-westus2"
+  hvn_id = "riddhi-az-aks-demo2"
 }
 
 # Note: Uncomment the below module to setup peering for connecting to a private HCP Consul cluster
@@ -77,7 +86,7 @@ data "hcp_hvn" "example" {
 # }
 
 data "hcp_consul_cluster" "main" {
-  cluster_id = "riddhi3-az-114beta1"
+  cluster_id = "rid-az-2"
 }
 
 resource "hcp_consul_cluster_root_token" "token" {
