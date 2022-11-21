@@ -4,7 +4,7 @@ output "consul_root_token" {
 }
 
 output "consul_url" {
-  value = data.hcp_consul_cluster.main.consul_public_endpoint_url
+  value = hcp_consul_cluster.main.consul_public_endpoint_url
 }
 
 output "hashicups_url" {

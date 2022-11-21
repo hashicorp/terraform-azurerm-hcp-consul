@@ -47,15 +47,11 @@ module "network" {
 }
 
 # Create an HCP HVN.
-# resource "hcp_hvn" "hvn" {
-#   cidr_block     = var.hvn_cidr_block
-#   cloud_provider = "azure"
-#   hvn_id         = var.hvn_id
-#   region         = var.hvn_region
-# }
-
-data "hcp_hvn" "example" {
-  hvn_id = "riddhi-az-aks-demo2"
+resource "hcp_hvn" "hvn" {
+  cidr_block     = var.hvn_cidr_block
+  cloud_provider = "azure"
+  hvn_id         = var.hvn_id
+  region         = var.hvn_region
 }
 
 # Note: Uncomment the below module to setup peering for connecting to a private HCP Consul cluster
@@ -77,20 +73,16 @@ data "hcp_hvn" "example" {
 # }
 
 # Create the Consul cluster.
-# resource "hcp_consul_cluster" "main" {
-#   cluster_id         = var.cluster_id
-#   hvn_id             = hcp_hvn.hvn.hvn_id
-#   public_endpoint    = true
-#   tier               = var.tier
-#   min_consul_version = "v1.14.0"
-# }
-
-data "hcp_consul_cluster" "main" {
-  cluster_id = "rid-az-2"
+resource "hcp_consul_cluster" "main" {
+  cluster_id         = var.cluster_id
+  hvn_id             = hcp_hvn.hvn.hvn_id
+  public_endpoint    = true
+  tier               = var.tier
+  min_consul_version = "v1.14.0"
 }
 
 resource "hcp_consul_cluster_root_token" "token" {
-  cluster_id = data.hcp_consul_cluster.main.id
+  cluster_id = hcp_consul_cluster.main.id
 }
 
 # Create a user assigned identity (required for UserAssigned identity in combination with brining our own subnet/nsg/etc)
@@ -138,13 +130,13 @@ module "aks_consul_client" {
   # version = "~> 0.2.8"
   source = "../../modules/hcp-aks-client/"
 
-  cluster_id = data.hcp_consul_cluster.main.cluster_id
+  cluster_id = hcp_consul_cluster.main.cluster_id
   # strip out `https://` from the public url
-  consul_hosts       = tolist([substr(data.hcp_consul_cluster.main.consul_public_endpoint_url, 8, -1)])
-  consul_version     = data.hcp_consul_cluster.main.consul_version
+  consul_hosts       = tolist([substr(hcp_consul_cluster.main.consul_public_endpoint_url, 8, -1)])
+  consul_version     = hcp_consul_cluster.main.consul_version
   k8s_api_endpoint   = azurerm_kubernetes_cluster.k8.kube_config.0.host
   boostrap_acl_token = hcp_consul_cluster_root_token.token.secret_id
-  datacenter         = data.hcp_consul_cluster.main.datacenter
+  datacenter         = hcp_consul_cluster.main.datacenter
 
   # The AKS node group will fail to create if the clients are
   # created at the same time. This forces the client to wait until
