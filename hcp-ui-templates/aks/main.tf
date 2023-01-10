@@ -137,15 +137,15 @@ resource "hcp_hvn" "hvn" {
 # Peer the HVN to the vnet.
 # module "hcp_peering" {
 #   source  = "hashicorp/hcp-consul/azurerm"
-#   version = "~> 0.3.1"
-
+#   version = "~> 0.3.2"
+#
 #   hvn    = hcp_hvn.hvn
 #   prefix = local.cluster_id
-
+#
 #   security_group_names = [azurerm_network_security_group.nsg.name]
 #   subscription_id      = data.azurerm_subscription.current.subscription_id
 #   tenant_id            = data.azurerm_subscription.current.tenant_id
-
+#
 #   subnet_ids = module.network.vnet_subnets
 #   vnet_id    = module.network.vnet_id
 #   vnet_rg    = azurerm_resource_group.rg.name
@@ -206,7 +206,7 @@ resource "azurerm_kubernetes_cluster" "k8" {
 # Create a Kubernetes client that deploys Consul and its secrets.
 module "aks_consul_client" {
   source  = "hashicorp/hcp-consul/azurerm//modules/hcp-aks-client"
-  version = "~> 0.3.1"
+  version = "~> 0.3.2"
 
   cluster_id = hcp_consul_cluster.main.cluster_id
   # strip out url scheme from the public url
@@ -225,7 +225,7 @@ module "aks_consul_client" {
 # Deploy Hashicups.
 module "demo_app" {
   source  = "hashicorp/hcp-consul/azurerm//modules/k8s-demo-app"
-  version = "~> 0.3.1"
+  version = "~> 0.3.2"
 
   depends_on = [module.aks_consul_client]
 }
