@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 resource "azurerm_network_security_rule" "allow_ssh" {
   name                        = "${var.prefix}-ssh"
   priority                    = 300
