@@ -1,6 +1,3 @@
-# Copyright (c) HashiCorp, Inc.
-# SPDX-License-Identifier: MPL-2.0
-
 locals {
   hvn_region      = "{{ .HVNRegion }}"
   hvn_id          = "{{ .ClusterID }}-hvn"
@@ -10,6 +7,7 @@ locals {
   vnet_id         = "/subscriptions/{{ .SubscriptionID }}/resourceGroups/{{ .VnetRgName }}/providers/Microsoft.Network/virtualNetworks/{{ .VnetName }}"
   subnet1_id      = "/subscriptions/{{ .SubscriptionID }}/resourceGroups/{{ .VnetRgName }}/providers/Microsoft.Network/virtualNetworks/{{ .VnetName }}/subnets/{{ .SubnetName }}"
 }
+
 
 
 terraform {
@@ -52,6 +50,7 @@ provider "consul" {
   datacenter = hcp_consul_cluster.main.datacenter
   token      = hcp_consul_cluster_root_token.token.secret_id
 }
+
 
 data "azurerm_subscription" "current" {}
 
@@ -123,6 +122,7 @@ module "vm_client" {
   root_token         = hcp_consul_cluster_root_token.token.secret_id
   consul_version     = hcp_consul_cluster.main.consul_version
 }
+
 
 output "consul_root_token" {
   value     = hcp_consul_cluster_root_token.token.secret_id
