@@ -15,7 +15,7 @@ terraform {
   required_providers {
     azurerm = {
       source                = "hashicorp/azurerm"
-      version               = "~> 2.65"
+      version               = "~> 3.59"
       configuration_aliases = [azurerm.azure]
     }
     azuread = {
@@ -111,7 +111,8 @@ resource "azurerm_network_security_group" "nsg" {
 # Create an Azure vnet and authorize Consul server traffic.
 module "network" {
   source              = "Azure/vnet/azurerm"
-  version             = "~> 2.6.0"
+  version             = "~> 4.0"
+
   address_space       = local.vnet_cidrs
   resource_group_name = azurerm_resource_group.rg.name
   subnet_names        = keys(local.vnet_subnets)
