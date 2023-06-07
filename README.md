@@ -18,7 +18,8 @@ with the HCP Consul servers. The module accomplishes this in by:
 
 These examples allow you to easily research and demo HCP Consul.
 
-- [hcp-vm-demo](https://github.com/hashicorp/terraform-azurerm-hcp-consul/tree/main/examples/hcp-vm-demo) - Use Azure virtual machines to run Consul clients.
+- [hcp-vm-demo](https://github.com/hashicorp/terraform-azurerm-hcp-consul/tree/main/examples/hcp-vm-demo) - Use Azure virtual machines to run Consul clients
+- [hcp-aks-demo](https://github.com/hashicorp/terraform-azurerm-hcp-consul/tree/main/examples/hcp-aks-demo) - Use an AKS cluster to deploy Consul clients
 
 ## License
 

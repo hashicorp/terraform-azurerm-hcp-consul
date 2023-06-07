@@ -24,6 +24,7 @@ resource "azurerm_network_security_group" "nsg" {
 module "network" {
   source              = "Azure/vnet/azurerm"
   version             = "~> 2.6.0"
+
   address_space       = var.vnet_cidrs
   resource_group_name = azurerm_resource_group.rg.name
   subnet_names        = keys(var.vnet_subnets)
