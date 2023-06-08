@@ -3,8 +3,8 @@
 # SPDX-License-Identifier: MPL-2.0
 
 
-old="0\.3\.1"
-new=0.3.2
+old="0\.3\.2"
+new=0.4.0
 
 for platform in vm aks; do
   file=examples/hcp-$platform-demo/main.tf
