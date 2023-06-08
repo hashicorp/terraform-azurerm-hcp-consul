@@ -28,7 +28,7 @@ variable "hvn_cidr_block" {
 variable "cluster_id" {
   type        = string
   description = "The cluster id is unique. All other unique values will be derived from this (resource group, vnet etc)"
-  default     = "hcp-azure"
+  default     = "hcp-azure-cluster"
 }
 
 variable "tier" {

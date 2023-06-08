@@ -110,8 +110,8 @@ resource "azurerm_network_security_group" "nsg" {
 
 # Create an Azure vnet and authorize Consul server traffic.
 module "network" {
-  source              = "Azure/vnet/azurerm"
-  version             = "~> 4.0"
+  source  = "Azure/vnet/azurerm"
+  version = "~> 3.0"
 
   address_space       = local.vnet_cidrs
   resource_group_name = azurerm_resource_group.rg.name

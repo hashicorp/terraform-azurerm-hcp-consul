@@ -26,13 +26,15 @@ resource "azurerm_network_security_group" "nsg" {
 }
 
 module "network" {
-  source              = "Azure/vnet/azurerm"
-  version             = "~> 4.0"
+  source  = "Azure/vnet/azurerm"
+  version = "~> 3.0"
 
   resource_group_name = azurerm_resource_group.rg.name
   address_space       = var.vnet_cidrs
   subnet_prefixes     = values(var.vnet_subnets)
   subnet_names        = keys(var.vnet_subnets)
+  use_for_each        = true
+  vnet_location       = azurerm_resource_group.rg.location
   vnet_name           = "${var.cluster_id}-vnet"
 
   # Every subnet will share a single route table
@@ -80,7 +82,7 @@ resource "hcp_consul_cluster_root_token" "token" {
 }
 
 module "vm_client" {
-  source  = "hashicorp/hcp-consul/azurerm//modules/hcp-vm-client"
+  source = "hashicorp/hcp-consul/azurerm//modules/hcp-vm-client"
   version = "~> 0.3.2"
 
   resource_group = azurerm_resource_group.rg.name
