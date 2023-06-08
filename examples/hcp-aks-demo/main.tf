@@ -121,7 +121,7 @@ resource "azurerm_kubernetes_cluster" "k8" {
 
 # Create a Kubernetes client that deploys Consul and its secrets.
 module "aks_consul_client" {
-  source = "hashicorp/hcp-consul/azurerm//modules/hcp-aks-client"
+  source  = "hashicorp/hcp-consul/azurerm//modules/hcp-aks-client"
   version = "~> 0.3.2"
 
   cluster_id = hcp_consul_cluster.main.cluster_id

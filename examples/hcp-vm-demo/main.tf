@@ -82,7 +82,7 @@ resource "hcp_consul_cluster_root_token" "token" {
 }
 
 module "vm_client" {
-  source = "hashicorp/hcp-consul/azurerm//modules/hcp-vm-client"
+  source  = "hashicorp/hcp-consul/azurerm//modules/hcp-vm-client"
   version = "~> 0.3.2"
 
   resource_group = azurerm_resource_group.rg.name

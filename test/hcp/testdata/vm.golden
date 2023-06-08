@@ -11,47 +11,6 @@ locals {
 
 
 
-terraform {
-  required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = "~> 3.59"
-    }
-    azuread = {
-      source  = "hashicorp/azuread"
-      version = "~> 2.14"
-    }
-    hcp = {
-      source  = "hashicorp/hcp"
-      version = ">= 0.23.1"
-    }
-    random = {
-      source  = "hashicorp/random"
-      version = "3.2.0"
-    }
-  }
-
-  required_version = ">= 1.0.11"
-
-}
-
-provider "azurerm" {
-  features {}
-}
-
-provider "azuread" {}
-
-provider "hcp" {}
-
-provider "random" {}
-
-provider "consul" {
-  address    = hcp_consul_cluster.main.consul_public_endpoint_url
-  datacenter = hcp_consul_cluster.main.datacenter
-  token      = hcp_consul_cluster_root_token.token.secret_id
-}
-
-
 data "azurerm_subscription" "current" {}
 
 resource "random_string" "vm_admin_password" {
@@ -76,11 +35,15 @@ resource "azurerm_network_security_group" "nsg" {
 }
 
 module "network" {
-  source              = "Azure/vnet/azurerm"
+  source  = "Azure/vnet/azurerm"
+  version = "~> 3.0"
+
   resource_group_name = azurerm_resource_group.rg.name
   address_space       = local.vnet_cidrs
   subnet_prefixes     = values(local.vnet_subnets)
   subnet_names        = keys(local.vnet_subnets)
+  use_for_each        = true
+  vnet_location       = azurerm_resource_group.rg.location
   vnet_name           = "${local.cluster_id}-vnet"
 
   # Every subnet will share a single route table
