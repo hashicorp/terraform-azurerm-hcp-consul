@@ -6,7 +6,7 @@ This example creates all of the Azure and HCP resources necessary for connecting
 
 1. Create a HCP Service Key and set the required environment variables
 
-```
+```bash
 export HCP_CLIENT_ID=...
 export HCP_CLIENT_SECRET=...
 ```

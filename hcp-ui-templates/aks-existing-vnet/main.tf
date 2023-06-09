@@ -18,7 +18,7 @@ terraform {
   required_providers {
     azurerm = {
       source                = "hashicorp/azurerm"
-      version               = "~> 2.65"
+      version               = "~> 3.59"
       configuration_aliases = [azurerm.azure]
     }
     azuread = {
@@ -111,7 +111,6 @@ resource "azurerm_network_security_group" "nsg" {
   resource_group_name = data.azurerm_resource_group.rg.name
 }
 
-
 # Create an HCP HVN.
 resource "hcp_hvn" "hvn" {
   cidr_block     = "172.25.32.0/20"
@@ -124,7 +123,7 @@ resource "hcp_hvn" "hvn" {
 # Peer the HVN to the vnet.
 # module "hcp_peering" {
 #   source  = "hashicorp/hcp-consul/azurerm"
-#   version = "~> 0.3.2"
+#   version = "~> 0.4.0"
 #
 #   hvn    = hcp_hvn.hvn
 #   prefix = local.cluster_id
@@ -167,10 +166,9 @@ resource "azurerm_kubernetes_cluster" "k8" {
   resource_group_name     = data.azurerm_resource_group.rg.name
 
   network_profile {
-    network_plugin     = "azure"
-    service_cidr       = "10.30.0.0/16"
-    dns_service_ip     = "10.30.0.10"
-    docker_bridge_cidr = "172.17.0.1/16"
+    network_plugin = "azure"
+    service_cidr   = "10.30.0.0/16"
+    dns_service_ip = "10.30.0.10"
   }
 
   default_node_pool {
@@ -183,8 +181,8 @@ resource "azurerm_kubernetes_cluster" "k8" {
   }
 
   identity {
-    type                      = "UserAssigned"
-    user_assigned_identity_id = azurerm_user_assigned_identity.identity.id
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.identity.id]
   }
 
 }
@@ -192,9 +190,10 @@ resource "azurerm_kubernetes_cluster" "k8" {
 # Create a Kubernetes client that deploys Consul and its secrets.
 module "aks_consul_client" {
   source  = "hashicorp/hcp-consul/azurerm//modules/hcp-aks-client"
-  version = "~> 0.3.2"
+  version = "~> 0.4.0"
 
   cluster_id = hcp_consul_cluster.main.cluster_id
+
   # strip out url scheme from the public url
   consul_hosts       = tolist([substr(hcp_consul_cluster.main.consul_public_endpoint_url, 8, -1)])
   consul_version     = hcp_consul_cluster.main.consul_version
@@ -211,24 +210,25 @@ module "aks_consul_client" {
 # Deploy Hashicups.
 module "demo_app" {
   source  = "hashicorp/hcp-consul/azurerm//modules/k8s-demo-app"
-  version = "~> 0.3.2"
+  version = "~> 0.4.0"
 
   depends_on = [module.aks_consul_client]
 }
 
 # Authorize HTTP ingress to the load balancer.
 resource "azurerm_network_security_rule" "ingress" {
-  name                        = "http-ingress"
-  priority                    = 301
-  direction                   = "Inbound"
+  name = "http-ingress"
+
   access                      = "Allow"
-  protocol                    = "Tcp"
-  source_port_range           = "*"
-  destination_port_range      = "8080"
-  source_address_prefix       = "*"
   destination_address_prefix  = module.demo_app.load_balancer_ip
-  resource_group_name         = data.azurerm_resource_group.rg.name
+  destination_port_range      = "8080"
+  direction                   = "Inbound"
   network_security_group_name = azurerm_network_security_group.nsg.name
+  priority                    = 301
+  protocol                    = "Tcp"
+  resource_group_name         = data.azurerm_resource_group.rg.name
+  source_address_prefix       = "*"
+  source_port_range           = "*"
 
   depends_on = [module.demo_app]
 }

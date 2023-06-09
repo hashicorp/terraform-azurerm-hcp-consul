@@ -6,7 +6,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 2.65"
+      version = "~> 3.59"
     }
     azuread = {
       source  = "hashicorp/azuread"
@@ -29,13 +29,13 @@ locals {
       description = "Consul LAN Serf (tcp)"
       rule_name   = "consul-lan-tcp"
       port        = 8301
-      protocol    = "tcp"
+      protocol    = "Tcp"
     },
     {
       description = "Consul LAN Serf (udp)"
       rule_name   = "consul-lan-udp"
       port        = 8301
-      protocol    = "udp"
+      protocol    = "Udp"
     },
   ]
 
@@ -43,11 +43,11 @@ locals {
   hcp_consul_security_groups = flatten([
     for _, sg in var.security_group_names : [
       for i, rule in local.ingress_consul_rules : {
-        security_group_name = sg
         description         = rule.description
         destination_port    = rule.port
         protocol            = rule.protocol
         rule_name           = rule.rule_name
+        security_group_name = sg
       }
     ]
   ])
@@ -76,10 +76,11 @@ data "azurerm_virtual_network" "vnet" {
 //
 // Using this known strcuture we can trim the prefix after matching everything up to subnets/
 data "azurerm_subnet" "selected" {
-  count                = length(var.subnet_ids)
+  count = length(var.subnet_ids)
+
   name                 = trimprefix(var.subnet_ids[count.index], regex(".*subnets\\/", var.subnet_ids[count.index]))
-  virtual_network_name = data.azurerm_virtual_network.vnet.name
   resource_group_name  = var.vnet_rg
+  virtual_network_name = data.azurerm_virtual_network.vnet.name
 }
 
 resource "hcp_azure_peering_connection" "peering" {
@@ -134,24 +135,26 @@ resource "hcp_hvn_route" "route" {
 }
 
 resource "azurerm_network_security_rule" "hcp_consul_existing_sg_rules" {
-  count                       = length(local.hcp_consul_security_groups)
-  name                        = "${var.prefix}-${local.hcp_consul_security_groups[count.index].rule_name}"
-  priority                    = 100 + count.index
-  direction                   = "Inbound"
+  count = length(local.hcp_consul_security_groups)
+
   access                      = "Allow"
   description                 = local.hcp_consul_security_groups[count.index].description
-  protocol                    = local.hcp_consul_security_groups[count.index].protocol
-  source_port_range           = "*"
-  destination_port_range      = local.hcp_consul_security_groups[count.index].destination_port
-  source_address_prefix       = var.hvn.cidr_block
   destination_address_prefix  = "*"
-  resource_group_name         = var.vnet_rg
+  destination_port_range      = local.hcp_consul_security_groups[count.index].destination_port
+  direction                   = "Inbound"
+  name                        = "${var.prefix}-${local.hcp_consul_security_groups[count.index].rule_name}"
   network_security_group_name = local.hcp_consul_security_groups[count.index].security_group_name
+  priority                    = 100 + count.index
+  protocol                    = local.hcp_consul_security_groups[count.index].protocol
+  resource_group_name         = var.vnet_rg
+  source_address_prefix       = var.hvn.cidr_block
+  source_port_range           = "*"
 }
 
 # If no security_group_names were provided, create a new security_group.
 resource "azurerm_network_security_group" "nsg" {
-  count               = length(var.security_group_names) == 0 ? 1 : 0
+  count = length(var.security_group_names) == 0 ? 1 : 0
+
   name                = "${var.prefix}-nsg"
   location            = data.azurerm_virtual_network.vnet.location
   resource_group_name = var.vnet_rg
@@ -160,23 +163,25 @@ resource "azurerm_network_security_group" "nsg" {
 # If no security_group_names were provided associate the new security 
 # group with all the subnets
 resource "azurerm_subnet_network_security_group_association" "subnetnsg" {
-  count                     = length(var.security_group_names) == 0 ? length(var.subnet_ids) : 0
+  count = length(var.security_group_names) == 0 ? length(var.subnet_ids) : 0
+
   subnet_id                 = var.subnet_ids[count.index]
   network_security_group_id = azurerm_network_security_group.nsg[0].id
 }
 
 # If no security_group_ids were provided, use the new security_group.
 resource "azurerm_network_security_rule" "hcp_consul_new_sg_rules" {
-  count                       = length(var.security_group_names) == 0 ? length(local.ingress_consul_rules) : 0
-  name                        = "${var.prefix}-${local.ingress_consul_rules[count.index].rule_name}"
-  priority                    = 100 + count.index
-  direction                   = "Inbound"
+  count = length(var.security_group_names) == 0 ? length(local.ingress_consul_rules) : 0
+
   access                      = "Allow"
-  protocol                    = local.ingress_consul_rules[count.index].protocol
-  source_port_range           = "*"
-  destination_port_range      = local.ingress_consul_rules[count.index].port
-  source_address_prefix       = var.hvn.cidr_block
   destination_address_prefix  = "*"
-  resource_group_name         = var.vnet_rg
+  destination_port_range      = local.ingress_consul_rules[count.index].port
+  direction                   = "Inbound"
+  name                        = "${var.prefix}-${local.ingress_consul_rules[count.index].rule_name}"
   network_security_group_name = azurerm_network_security_group.nsg[0].name
+  priority                    = 100 + count.index
+  protocol                    = local.ingress_consul_rules[count.index].protocol
+  resource_group_name         = var.vnet_rg
+  source_address_prefix       = var.hvn.cidr_block
+  source_port_range           = "*"
 }

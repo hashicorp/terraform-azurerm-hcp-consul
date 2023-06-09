@@ -24,7 +24,7 @@ The user must be assigned a [role granting authorization to create Service Princ
 
 1. Initialize and apply the Terraform configuration
 
-```
+```bash
 terraform init && terraform apply
 ```
 

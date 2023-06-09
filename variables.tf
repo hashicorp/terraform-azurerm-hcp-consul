@@ -1,10 +1,8 @@
 # Copyright (c) HashiCorp, Inc.
 # SPDX-License-Identifier: MPL-2.0
 
-/*
- *
+/**
  * Required Variables
- *
  */
 variable "tenant_id" {
   type        = string
@@ -40,10 +38,8 @@ variable "vnet_rg" {
   description = "The name of the vnet's resource group that everything will be created in"
 }
 
-/*
- *
+/**
  * Optional Variables
- *
  */
 
 variable "security_group_names" {
